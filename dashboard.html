@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nifty 50 Dashboard</title>
+<style>
+/* ── RESET & BASE ── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0b10;color:#d4d4d8;min-height:100vh;font-size:14px}
+a{color:inherit;text-decoration:none}
+
+/* ── LAYOUT ── */
+.page{max-width:1600px;margin:0 auto;padding:0 20px 40px}
+
+/* ── NAVBAR ── */
+nav{background:#111118;border-bottom:1px solid #1e1e2e;padding:14px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.nav-logo{font-size:17px;font-weight:800;color:#fff;letter-spacing:.5px}
+.nav-logo span{color:#f97316}
+.nav-tabs{display:flex;gap:4px;margin-left:auto}
+.nav-tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:#71717a;transition:all .15s}
+.nav-tab.active,.nav-tab:hover{background:#f97316;color:#fff}
+.nav-meta{font-size:11px;color:#52525b;margin-left:8px}
+.freshness-ok{color:#22c55e}
+.freshness-warn{color:#ef4444}
+
+/* ── SECTION TABS ── */
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ── KPI BAR ── */
+.kpi-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:#1e1e2e;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden;margin:20px 0}
+.kpi{background:#111118;padding:16px 20px}
+.kpi-label{font-size:10px;color:#52525b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600}
+.kpi-val{font-size:22px;font-weight:800;color:#fff}
+.kpi-sub{font-size:11px;margin-top:3px;color:#71717a}
+.kpi-up{color:#22c55e}
+.kpi-dn{color:#ef4444}
+.kpi-warn{color:#f97316}
+
+/* ── SCORING MODEL PANEL ── */
+.model-panel{background:#111118;border:1px solid #1e1e2e;border-radius:12px;padding:20px;margin-bottom:20px}
+.model-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#f97316;margin-bottom:16px}
+.model-blocks{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.model-block{background:#0d0d15;border-radius:8px;padding:14px}
+.model-block-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.model-block.fund .model-block-title{color:#60a5fa}
+.model-block.val  .model-block-title{color:#a78bfa}
+.model-block.mom  .model-block-title{color:#34d399}
+.model-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.model-row-label{font-size:11px;color:#a1a1aa;flex:1}
+.model-bar-wrap{flex:2;height:6px;background:#1e1e2e;border-radius:3px;overflow:hidden}
+.model-bar{height:100%;border-radius:3px}
+.fund .model-bar{background:#60a5fa}
+.val  .model-bar{background:#a78bfa}
+.mom  .model-bar{background:#34d399}
+.model-pts{font-size:10px;color:#71717a;width:30px;text-align:right}
+
+/* ── CONTROLS ── */
+.controls{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.search-box{background:#111118;border:1px solid #1e1e2e;border-radius:7px;padding:7px 12px;color:#d4d4d8;font-size:13px;width:200px}
+.search-box:focus{outline:none;border-color:#f97316}
+.filter-btn{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #1e1e2e;background:#111118;color:#71717a;transition:all .15s}
+.filter-btn.active{border-color:#f97316;color:#f97316;background:#1c1108}
+select.filter-select{background:#111118;border:1px solid #1e1e2e;border-radius:6px;padding:6px 10px;color:#d4d4d8;font-size:12px;cursor:pointer}
+select.filter-select:focus{outline:none;border-color:#f97316}
+.sort-info{font-size:11px;color:#52525b;margin-left:auto}
+
+/* ── MAIN TABLE ── */
+.table-wrap{background:#111118;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:1200px}
+thead th{background:#0d0d15;padding:10px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#52525b;text-align:left;cursor:pointer;white-space:nowrap;user-select:none;border-bottom:1px solid #1e1e2e}
+thead th:hover{color:#d4d4d8}
+thead th.sorted{color:#f97316}
+thead th .sort-arrow{margin-left:3px;opacity:.5}
+thead th.sorted .sort-arrow{opacity:1}
+tbody tr{border-bottom:1px solid #0f0f18;transition:background .1s}
+tbody tr:hover{background:#13131e}
+tbody tr:last-child{border:none}
+td{padding:10px 12px;vertical-align:middle;white-space:nowrap}
+
+/* ── TABLE CELL TYPES ── */
+.rank-cell{font-size:12px;color:#52525b;font-weight:700;width:32px}
+.name-cell .sname{font-weight:700;color:#fff;font-size:13px}
+.name-cell .ssym{font-size:10px;color:#52525b;margin-top:1px}
+.name-cell .ssec{font-size:10px;color:#3f3f46;margin-top:1px}
+.num{font-variant-numeric:tabular-nums}
+.up{color:#22c55e}
+.dn{color:#ef4444}
+.neu{color:#a1a1aa}
+
+/* ── SIGNAL CHIPS ── */
+.sig{display:inline-block;padding:3px 9px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.5px}
+.sig-BUY{background:#14532d;color:#4ade80}
+.sig-HOLD{background:#1c1a08;color:#fbbf24}
+.sig-AVOID{background:#450a0a;color:#f87171}
+
+/* ── EPS QUALITY CHIPS ── */
+.eq{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700}
+.eq-CLEAN{background:#14532d;color:#4ade80}
+.eq-PARTIAL{background:#1c2a40;color:#60a5fa}
+.eq-UNVERIFIED{background:#2a1a00;color:#fb923c}
+
+/* ── DIVERGE FLAG ── */
+.div-flag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;background:#450a0a;color:#f87171}
+
+/* ── SCORE BAR ── */
+.score-wrap{display:flex;align-items:center;gap:6px}
+.score-bar-bg{width:60px;height:6px;background:#1e1e2e;border-radius:3px;overflow:hidden;flex-shrink:0}
+.score-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.score-num{font-size:13px;font-weight:800;color:#fff;min-width:28px}
+
+/* ── SCORE BLOCKS ── */
+.score-blocks{display:flex;gap:3px}
+.sb{padding:2px 5px;border-radius:3px;font-size:9px;font-weight:700}
+.sb-f{background:#1e3a5f;color:#60a5fa}
+.sb-v{background:#2e1a5f;color:#a78bfa}
+.sb-m{background:#1a3a2a;color:#34d399}
+
+/* ── PE COLOUR ── */
+.pe-cheap{color:#4ade80}
+.pe-fair{color:#a1a1aa}
+.pe-rich{color:#fb923c}
+.pe-exp{color:#f87171}
+
+/* ── EXPAND ROW ── */
+.expand-row{display:none;background:#0d0d15}
+.expand-row.open{display:table-row}
+.expand-inner{padding:16px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.expand-block{background:#111118;border-radius:8px;padding:12px}
+.expand-block-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#52525b;margin-bottom:8px}
+.expand-row-item{display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px}
+.expand-row-item .lbl{color:#71717a}
+.expand-row-item .val{color:#d4d4d8;font-weight:600}
+.score-detail-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.sdrl{font-size:10px;color:#71717a;width:140px;flex-shrink:0}
+.sdrb{flex:1;height:5px;background:#1e1e2e;border-radius:2px;overflow:hidden}
+.sdrb-fill{height:100%;border-radius:2px}
+.sdrv{font-size:10px;color:#a1a1aa;width:30px;text-align:right}
+.sdrr{font-size:10px;color:#52525b;flex:1;padding-left:6px}
+
+/* ── DATA QUALITY PANEL ── */
+.dq-panel{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.dq-block{background:#111118;border:1px solid #1e1e2e;border-radius:10px;padding:14px;text-align:center}
+.dq-num{font-size:28px;font-weight:800;margin-bottom:2px}
+.dq-label{font-size:10px;color:#52525b;text-transform:uppercase;letter-spacing:1px}
+
+/* ── SECTOR PANEL ── */
+.sector-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.sector-card{background:#111118;border:1px solid #1e1e2e;border-radius:10px;padding:14px}
+.sector-name{font-size:12px;font-weight:700;color:#fff;margin-bottom:8px}
+.sector-stat{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px}
+.sector-stat .sl{color:#71717a}
+
+/* ── SIMULATION TAB ── */
+.sim-empty{background:#111118;border:1px solid #1e1e2e;border-radius:12px;padding:48px;text-align:center}
+.sim-empty-icon{font-size:48px;margin-bottom:16px}
+.sim-empty-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:8px}
+.sim-empty-sub{font-size:13px;color:#71717a;line-height:1.7;max-width:500px;margin:0 auto}
+
+/* ── TOP25 vs BOTTOM25 ── */
+.split-panel{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.half-panel{background:#111118;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden}
+.half-header{padding:14px 16px;border-bottom:1px solid #1e1e2e;display:flex;justify-content:space-between;align-items:center}
+.half-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.half-title.top{color:#4ade80}
+.half-title.bot{color:#f87171}
+.half-avg{font-size:20px;font-weight:800;color:#fff}
+.half-row{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #0f0f18;font-size:12px}
+.half-row:last-child{border:none}
+.half-sym{color:#a1a1aa}
+.half-score{font-weight:700}
+
+/* ── GAUGE ── */
+.gauge-wrap{text-align:center;padding:20px}
+.gauge-val{font-size:36px;font-weight:800;color:#f97316}
+.gauge-label{font-size:11px;color:#71717a;margin-top:4px}
+.gauge-track{width:100%;height:8px;border-radius:4px;background:linear-gradient(to right,#22c55e,#eab308,#ef4444);margin:14px 0 4px;position:relative}
+.gauge-marker{width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #f97316;position:absolute;top:-3px;transform:translateX(-50%)}
+.gauge-ticks{display:flex;justify-content:space-between;font-size:9px;color:#52525b}
+
+/* ── WARNINGS ── */
+.warning-bar{background:#1c1200;border:1px solid #78350f;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#fbbf24;display:flex;gap:8px;align-items:center}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .model-blocks{grid-template-columns:1fr}
+  .kpi-bar{grid-template-columns:repeat(2,1fr)}
+  .split-panel{grid-template-columns:1fr}
+  .expand-inner{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .kpi-bar{grid-template-columns:1fr}
+  .expand-inner{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav>
+  <div class="nav-logo">NIFTY <span>50</span></div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showTab('overview')">Overview</div>
+    <div class="nav-tab" onclick="showTab('stocks')">All Stocks</div>
+    <div class="nav-tab" onclick="showTab('model')">Scoring Model</div>
+    <div class="nav-tab" onclick="showTab('simulation')">Simulation</div>
+  </div>
+  <div class="nav-meta">
+    Data: Yahoo Finance &nbsp;|&nbsp;
+    Last updated: <span id="last-updated" class="freshness-ok">—</span>
+  </div>
+</nav>
+
+<div class="page">
+
+<!-- ════════════════════════════════════════════
+     TAB 1 — OVERVIEW
+════════════════════════════════════════════ -->
+<div id="tab-overview" class="tab-content active">
+
+  <!-- KPI Bar -->
+  <div class="kpi-bar" id="kpi-bar">
+    <div class="kpi"><div class="kpi-label">Nifty 50 Index</div><div class="kpi-val" id="kpi-index">—</div><div class="kpi-sub" id="kpi-index-sub">Live price</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Adj P/E (Index)</div><div class="kpi-val" id="kpi-pe">—</div><div class="kpi-sub" id="kpi-pe-sub">Stocks with valid P/E</div></div>
+    <div class="kpi"><div class="kpi-label">BUY / HOLD / AVOID</div><div class="kpi-val" id="kpi-signals">—</div><div class="kpi-sub">By scoring model</div></div>
+    <div class="kpi"><div class="kpi-label">EPS Adjusted Stocks</div><div class="kpi-val" id="kpi-eps-adj">—</div><div class="kpi-sub" id="kpi-eps-sub">Clean + Partial</div></div>
+    <div class="kpi"><div class="kpi-label">Data Freshness</div><div class="kpi-val" id="kpi-fresh" style="font-size:16px">—</div><div class="kpi-sub" id="kpi-fresh-sub">—</div></div>
+  </div>
+
+  <!-- Warnings -->
+  <div id="warnings-container"></div>
+
+  <!-- Top 25 vs Bottom 25 -->
+  <div class="split-panel">
+    <div class="half-panel">
+      <div class="half-header">
+        <div class="half-title top">▲ Top 25 — BUY LIST</div>
+        <div>Avg Score: <span class="half-avg" id="top25-avg">—</span></div>
+      </div>
+      <div id="top25-list"></div>
+    </div>
+    <div class="half-panel">
+      <div class="half-header">
+        <div class="half-title bot">▼ Bottom 25 — AVOID LIST</div>
+        <div>Avg Score: <span class="half-avg" id="bot25-avg">—</span></div>
+      </div>
+      <div id="bot25-list"></div>
+    </div>
+  </div>
+
+  <!-- Index P/E Gauge + Sector Panel -->
+  <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;margin-bottom:20px">
+    <div class="half-panel" style="padding:4px">
+      <div class="gauge-wrap">
+        <div class="kpi-label" style="margin-bottom:8px">INDEX AVG ADJ P/E</div>
+        <div class="gauge-val" id="gauge-val">—</div>
+        <div class="gauge-label">Nifty 50 Weighted Average</div>
+        <div class="gauge-track"><div class="gauge-marker" id="gauge-marker" style="left:50%"></div></div>
+        <div class="gauge-ticks"><span>10×</span><span>15×</span><span>20×</span><span>25×</span><span>30×+</span></div>
+        <div id="gauge-desc" style="margin-top:12px;font-size:11px;color:#71717a"></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#52525b;margin-bottom:10px">SECTOR AVG P/E</div>
+      <div class="sector-grid" id="sector-grid" style="margin-bottom:0"></div>
+    </div>
+  </div>
+
+  <!-- Data Quality -->
+  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#52525b;margin-bottom:10px">EPS DATA QUALITY</div>
+  <div class="dq-panel">
+    <div class="dq-block"><div class="dq-num" style="color:#4ade80" id="dq-clean">—</div><div class="dq-label">CLEAN — Both exceptional items & minority interest found and stripped</div></div>
+    <div class="dq-block"><div class="dq-num" style="color:#60a5fa" id="dq-partial">—</div><div class="dq-label">PARTIAL — One of the two adjustments applied</div></div>
+    <div class="dq-block"><div class="dq-num" style="color:#fb923c" id="dq-unverified">—</div><div class="dq-label">UNVERIFIED — Raw reported EPS used, no adjustment data available</div></div>
+  </div>
+
+</div><!-- /tab-overview -->
+
+
+<!-- ════════════════════════════════════════════
+     TAB 2 — ALL STOCKS
+════════════════════════════════════════════ -->
+<div id="tab-stocks" class="tab-content">
+  <div style="margin:20px 0 14px;font-size:10px;color:#52525b;font-weight:700;text-transform:uppercase;letter-spacing:1px">
+    All 50 stocks ranked by composite score. Click any row to see full breakdown.
+  </div>
+
+  <div class="controls">
+    <input class="search-box" id="search" placeholder="Search company or symbol…" oninput="filterTable()">
+    <button class="filter-btn active" onclick="filterSignal('ALL',this)">All 50</button>
+    <button class="filter-btn" onclick="filterSignal('BUY',this)">BUY</button>
+    <button class="filter-btn" onclick="filterSignal('HOLD',this)">HOLD</button>
+    <button class="filter-btn" onclick="filterSignal('AVOID',this)">AVOID</button>
+    <select class="filter-select" id="sector-filter" onchange="filterTable()">
+      <option value="">All Sectors</option>
+    </select>
+    <div class="sort-info" id="sort-info">Sorted by: Total Score ↓</div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table id="stocks-table">
+        <thead>
+          <tr>
+            <th onclick="sortTable('rank')">#<span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable('name')">Company<span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable('signal')">Signal<span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable('total_score')" class="sorted">Score<span class="sort-arrow">↓</span></th>
+            <th onclick="sortTable('price')">Price ₹<span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable('market_cap_cr')">Mkt Cap Cr<span class="sort-arrow">↕</span></th>
+            <th>Adj TTM EPS</th>
+            <th>EPS Qual</th>
+            <th onclick="sortTable('eps_growth_pct')">EPS Growth<span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable('adj_ttm_pe')">Adj P/E<span class="sort-arrow">↕</span></th>
+            <th>Fwd P/E (ours)</th>
+            <th>Fwd P/E (analyst)</th>
+            <th>EPS Diverge</th>
+            <th onclick="sortTable('roe_pct')">ROE %<span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable('debt_to_equity')">D/E<span class="sort-arrow">↕</span></th>
+            <th>Margin</th>
+            <th onclick="sortTable('rel_return_6m')">6M vs Nifty<span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable('rel_return_3m')">3M vs Nifty<span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable('rel_return_1m')">1M vs Nifty<span class="sort-arrow">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="stocks-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- /tab-stocks -->
+
+
+<!-- ════════════════════════════════════════════
+     TAB 3 — SCORING MODEL
+════════════════════════════════════════════ -->
+<div id="tab-model" class="tab-content">
+  <div style="margin:20px 0">
+
+    <div class="model-panel">
+      <div class="model-title">How stocks are scored — complete methodology</div>
+      <div class="model-blocks">
+
+        <div class="model-block fund">
+          <div class="model-block-title">🔵 Fundamental Quality — 50 points</div>
+          <div class="model-row"><span class="model-row-label">EPS Growth (YoY)</span><div class="model-bar-wrap"><div class="model-bar fund" style="width:100%"></div></div><span class="model-pts">15 pts</span></div>
+          <div class="model-row"><span class="model-row-label">Operating Margin Trend</span><div class="model-bar-wrap"><div class="model-bar fund" style="width:66%"></div></div><span class="model-pts">10 pts</span></div>
+          <div class="model-row"><span class="model-row-label">Return on Equity (ROE)</span><div class="model-bar-wrap"><div class="model-bar fund" style="width:66%"></div></div><span class="model-pts">10 pts</span></div>
+          <div class="model-row"><span class="model-row-label">Debt to Equity Ratio</span><div class="model-bar-wrap"><div class="model-bar fund" style="width:66%"></div></div><span class="model-pts">10 pts</span></div>
+          <div class="model-row"><span class="model-row-label">EPS Consistency (CV)</span><div class="model-bar-wrap"><div class="model-bar fund" style="width:33%"></div></div><span class="model-pts">5 pts</span></div>
+          <div style="margin-top:12px;font-size:10px;color:#52525b;line-height:1.7">
+            EPS Growth: >30%=15 | 20–30%=12 | 10–20%=9 | 0–10%=5 | Negative=0<br>
+            Margin Trend: Expanding=10 | Flat=5 | Contracting=0<br>
+            ROE: >25%=10 | 15–25%=7 | 10–15%=4 | Below=0<br>
+            D/E: &lt;0.5=10 | 0.5–1=7 | 1–2=4 | Above=0 (banks exempt)<br>
+            EPS CV: &lt;15%=5 | 15–30%=3 | Above=0
+          </div>
+        </div>
+
+        <div class="model-block val">
+          <div class="model-block-title">🟣 Valuation — 20 points</div>
+          <div class="model-row"><span class="model-row-label">P/E vs Sector Average</span><div class="model-bar-wrap"><div class="model-bar val" style="width:100%"></div></div><span class="model-pts">10 pts</span></div>
+          <div class="model-row"><span class="model-row-label">PEG Ratio</span><div class="model-bar-wrap"><div class="model-bar val" style="width:100%"></div></div><span class="model-pts">10 pts</span></div>
+          <div style="margin-top:12px;font-size:10px;color:#52525b;line-height:1.7">
+            P/E vs Sector: 20%+ below avg=10 | 10–20%=7 | Near avg=5 | 10–20% above=2 | 20%+ above=0<br>
+            PEG: &lt;0.75=10 | 0.75–1.0=8 | 1.0–1.5=5 | 1.5–2.0=2 | Above=0<br><br>
+            <strong style="color:#a78bfa">Note:</strong> P/E is compared sector-by-sector, not absolute.
+            A bank at P/E 12× is not the same as an IT company at P/E 12×.
+          </div>
+        </div>
+
+        <div class="model-block mom">
+          <div class="model-block-title">🟢 Momentum — 30 points</div>
+          <div class="model-row"><span class="model-row-label">6-Month vs Nifty 50</span><div class="model-bar-wrap"><div class="model-bar mom" style="width:100%"></div></div><span class="model-pts">15 pts</span></div>
+          <div class="model-row"><span class="model-row-label">3-Month vs Nifty 50</span><div class="model-bar-wrap"><div class="model-bar mom" style="width:66%"></div></div><span class="model-pts">10 pts</span></div>
+          <div class="model-row"><span class="model-row-label">1-Month vs Nifty 50</span><div class="model-bar-wrap"><div class="model-bar mom" style="width:33%"></div></div><span class="model-pts">5 pts</span></div>
+          <div style="margin-top:12px;font-size:10px;color:#52525b;line-height:1.7">
+            6M: >10% above Nifty=15 | 5–10%=11 | 0–5%=7 | Below=0<br>
+            3M: >5% above Nifty=10 | 0–5%=6 | Below=0<br>
+            1M: Above Nifty=5 | Below=0<br><br>
+            <strong style="color:#34d399">Why momentum?</strong> Stocks outperforming the index over
+            6 months tend to continue outperforming for another 3–6 months.
+            This is one of the most empirically validated signals in finance.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- EPS Adjustment methodology -->
+    <div class="model-panel" style="margin-top:16px">
+      <div class="model-title">How EPS is adjusted — the cleaning pipeline</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+        <div style="background:#0d0d15;border-radius:8px;padding:12px;border-top:2px solid #ef4444">
+          <div style="font-size:9px;color:#ef4444;font-weight:700;margin-bottom:6px">STEP 1</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:4px">Raw Reported EPS</div>
+          <div style="font-size:10px;color:#52525b">Yahoo Finance quarterly income statement. Includes everything the company reported — exceptional gains, write-offs, asset sales.</div>
+        </div>
+        <div style="background:#0d0d15;border-radius:8px;padding:12px;border-top:2px solid #f97316">
+          <div style="font-size:9px;color:#f97316;font-weight:700;margin-bottom:6px">STEP 2</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:4px">Find Exceptional Items</div>
+          <div style="font-size:10px;color:#52525b">"Total Unusual Items" row in income statement. One-time gains or losses that don't reflect normal business operations.</div>
+        </div>
+        <div style="background:#0d0d15;border-radius:8px;padding:12px;border-top:2px solid #f97316">
+          <div style="font-size:9px;color:#f97316;font-weight:700;margin-bottom:6px">STEP 3</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:4px">Strip Minority Interest</div>
+          <div style="font-size:10px;color:#52525b">Remove the portion of profit belonging to minority shareholders in subsidiaries. Only the parent's share counts.</div>
+        </div>
+        <div style="background:#0d0d15;border-radius:8px;padding:12px;border-top:2px solid #eab308">
+          <div style="font-size:9px;color:#eab308;font-weight:700;margin-bottom:6px">STEP 4</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:4px">Tax Adjustment</div>
+          <div style="font-size:10px;color:#52525b">Apply India's 25% standard corporate tax rate to exceptional items to get the after-tax impact before removing them.</div>
+        </div>
+        <div style="background:#0d0d15;border-radius:8px;padding:12px;border-top:2px solid #22c55e">
+          <div style="font-size:9px;color:#22c55e;font-weight:700;margin-bottom:6px">STEP 5</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:4px">Adjusted EPS ✓</div>
+          <div style="font-size:10px;color:#52525b">Clean recurring earnings ÷ shares outstanding. This is what feeds the scoring model and all P/E calculations.</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;background:#0d0d15;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:700;color:#f97316;margin-bottom:8px">FORWARD EPS — OPTION C (both shown)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:11px;color:#71717a;line-height:1.7">
+          <div><strong style="color:#60a5fa">Our Derived Forward EPS</strong> = TTM Adjusted EPS × (1 + EPS Growth Rate). Based entirely on our adjusted numbers and historical trend. Fully clean.</div>
+          <div><strong style="color:#a78bfa">Analyst Consensus (Yahoo)</strong> = Aggregated analyst estimates. May include exceptional items. Shown for comparison. If divergence > 20%, a ⚠ flag appears — it means analysts see something our model doesn't (or vice versa).</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tab-model -->
+
+
+<!-- ════════════════════════════════════════════
+     TAB 4 — SIMULATION
+════════════════════════════════════════════ -->
+<div id="tab-simulation" class="tab-content">
+  <div style="margin:20px 0">
+    <div class="sim-empty">
+      <div class="sim-empty-icon">📊</div>
+      <div class="sim-empty-title">Simulation Tracker — Starting April 2026</div>
+      <div class="sim-empty-sub">
+        This tab will track every quarterly prediction against actual performance.<br><br>
+        <strong style="color:#fff">How it works:</strong> Each quarter, the top 25 stocks by score are recorded
+        as the "predicted outperformers." One year from now, we compare what those 25 stocks
+        actually returned vs the Nifty 50 index. The hit rate, alpha, and Sharpe ratio
+        are calculated automatically.<br><br>
+        <strong style="color:#f97316">First prediction locked in: April 18, 2026</strong><br>
+        <strong style="color:#71717a">First result available: April 18, 2027</strong><br><br>
+        Come back each quarter to see if the model is working.
+      </div>
+      <div id="sim-current-picks" style="margin-top:24px;text-align:left;max-width:600px;margin-left:auto;margin-right:auto"></div>
+    </div>
+  </div>
+</div><!-- /tab-simulation -->
+
+</div><!-- /page -->
+
+<!-- ════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
+<script>
+// ── State ──
+let ALL_STOCKS = [];
+let currentSignalFilter = 'ALL';
+let currentSort = {key:'total_score', dir:-1};
+let expandedRow = null;
+
+// ── Load data ──
+async function loadData() {
+  try {
+    const r = await fetch('nifty_data.json?_=' + Date.now());
+    if (!r.ok) throw new Error('File not found');
+    const d = await r.json();
+    if (!d || !d.stocks || d.stocks.length === 0) {
+      showError('No stock data found. Run fetch_data.py first.');
+      return;
+    }
+    ALL_STOCKS = d.stocks;
+    renderAll(d);
+  } catch(e) {
+    showError('Could not load nifty_data.json. ' + e.message);
+  }
+}
+
+function showError(msg) {
+  document.getElementById('kpi-fresh').textContent = '⚠ Error';
+  document.getElementById('kpi-fresh').className = 'kpi-val kpi-warn';
+  document.getElementById('kpi-fresh-sub').textContent = msg;
+}
+
+// ── Render everything ──
+function renderAll(d) {
+  renderNav(d);
+  renderKPIs(d);
+  renderWarnings(d);
+  renderTop25Bot25(d);
+  renderGauge(d);
+  renderSectors(d);
+  renderDQ(d);
+  renderTable();
+  renderSimulation(d);
+  populateSectorFilter();
+}
+
+// ── Freshness ──
+function renderNav(d) {
+  const el = document.getElementById('last-updated');
+  const gen = d.generated_at ? new Date(d.generated_at) : null;
+  if (!gen) { el.textContent = 'Unknown'; return; }
+  const now = new Date();
+  const diffH = (now - gen) / 3600000;
+  el.textContent = gen.toLocaleString('en-IN', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  if (diffH > 48) {
+    el.className = 'freshness-warn';
+    el.textContent += ' ⚠ Stale';
+  } else {
+    el.className = 'freshness-ok';
+  }
+}
+
+// ── KPIs ──
+function renderKPIs(d) {
+  // Index
+  const ip = d.index_price;
+  document.getElementById('kpi-index').textContent = ip ? '₹' + ip.toLocaleString('en-IN') : '—';
+
+  // Avg adj P/E
+  const pes = ALL_STOCKS.map(s=>s.adj_ttm_pe).filter(x=>x&&x>0&&x<200);
+  const avgPE = pes.length ? (pes.reduce((a,b)=>a+b,0)/pes.length).toFixed(1) : '—';
+  document.getElementById('kpi-pe').textContent = avgPE !== '—' ? avgPE + '×' : '—';
+  document.getElementById('kpi-pe-sub').textContent = pes.length + ' stocks with valid adj P/E';
+
+  // Signals
+  const sm = d.summary || {};
+  document.getElementById('kpi-signals').textContent =
+    (sm.buy_count||0) + ' / ' + (sm.hold_count||0) + ' / ' + (sm.avoid_count||0);
+
+  // EPS quality
+  const adj = (sm.clean_eps_count||0) + (sm.partial_eps_count||0);
+  document.getElementById('kpi-eps-adj').textContent = adj + '/50';
+  document.getElementById('kpi-eps-sub').textContent =
+    (sm.clean_eps_count||0) + ' clean + ' + (sm.partial_eps_count||0) + ' partial';
+
+  // Freshness
+  const gen = d.generated_at ? new Date(d.generated_at) : null;
+  const diffH = gen ? (new Date() - gen)/3600000 : 999;
+  const freshEl = document.getElementById('kpi-fresh');
+  const freshSub = document.getElementById('kpi-fresh-sub');
+  if (diffH < 24) {
+    freshEl.textContent = '✓ Fresh';
+    freshEl.className = 'kpi-val kpi-up';
+    freshSub.textContent = 'Updated today';
+  } else if (diffH < 48) {
+    freshEl.textContent = '~ Recent';
+    freshEl.className = 'kpi-val kpi-warn';
+    freshSub.textContent = 'Updated yesterday';
+  } else {
+    freshEl.textContent = '⚠ Stale';
+    freshEl.className = 'kpi-val kpi-dn';
+    freshSub.textContent = 'Run fetch_data.py';
+  }
+}
+
+// ── Warnings ──
+function renderWarnings(d) {
+  const container = document.getElementById('warnings-container');
+  const warns = [];
+
+  // Forward EPS divergence
+  const divs = ALL_STOCKS.filter(s => s.forward_eps_diverged);
+  if (divs.length > 0) {
+    warns.push('⚠ ' + divs.length + ' stock(s) have Forward EPS divergence >20% between our model and analyst consensus: '
+      + divs.map(s=>s.symbol.replace('.NS','')).join(', ')
+      + '. Check individual stock detail for context.');
+  }
+
+  // Unverified EPS
+  const unv = ALL_STOCKS.filter(s => s.eps_quality === 'UNVERIFIED');
+  if (unv.length > 5) {
+    warns.push('⚠ ' + unv.length + ' stocks have UNVERIFIED EPS (raw reported figures used, no adjustment data). P/E for these stocks may be misleading.');
+  }
+
+  // Sector concentration in top 25
+  const top25 = ALL_STOCKS.slice(0,25);
+  const sectorCount = {};
+  top25.forEach(s => { sectorCount[s.sector] = (sectorCount[s.sector]||0)+1; });
+  Object.entries(sectorCount).forEach(([sec,cnt]) => {
+    if (cnt >= 5) warns.push('⚠ Sector concentration: ' + cnt + ' of your top 25 are from ' + sec + '. Your simulated portfolio has significant sector exposure.');
+  });
+
+  container.innerHTML = warns.map(w => `<div class="warning-bar">${w}</div>`).join('');
+}
+
+// ── Top 25 / Bottom 25 ──
+function renderTop25Bot25(d) {
+  const sm = d.summary || {};
+  document.getElementById('top25-avg').textContent = sm.top25_avg_score || '—';
+  document.getElementById('bot25-avg').textContent = sm.bot25_avg_score || '—';
+
+  const top25 = ALL_STOCKS.slice(0,25);
+  const bot25 = ALL_STOCKS.slice(25,50);
+
+  document.getElementById('top25-list').innerHTML = top25.map(s => `
+    <div class="half-row">
+      <span style="color:#52525b;width:24px;font-size:11px">#${s.rank}</span>
+      <span style="flex:1;font-weight:600;color:#d4d4d8;font-size:12px">${s.name.length>28?s.name.slice(0,28)+'…':s.name}</span>
+      <span class="half-sym" style="width:60px;font-size:10px">${s.symbol.replace('.NS','')}</span>
+      <span class="half-score" style="color:${scoreColor(s.total_score)}">${s.total_score}</span>
+    </div>`).join('');
+
+  document.getElementById('bot25-list').innerHTML = bot25.map(s => `
+    <div class="half-row">
+      <span style="color:#52525b;width:24px;font-size:11px">#${s.rank}</span>
+      <span style="flex:1;font-weight:600;color:#71717a;font-size:12px">${s.name.length>28?s.name.slice(0,28)+'…':s.name}</span>
+      <span class="half-sym" style="width:60px;font-size:10px">${s.symbol.replace('.NS','')}</span>
+      <span class="half-score" style="color:${scoreColor(s.total_score)}">${s.total_score}</span>
+    </div>`).join('');
+}
+
+// ── Gauge ──
+function renderGauge(d) {
+  const pes = ALL_STOCKS.map(s=>s.adj_ttm_pe).filter(x=>x&&x>0&&x<200);
+  const avg = pes.length ? pes.reduce((a,b)=>a+b,0)/pes.length : null;
+  if (!avg) return;
+  const rounded = avg.toFixed(1);
+  document.getElementById('gauge-val').textContent = rounded + '×';
+  // Map 10–30+ to 0–100%
+  const pct = Math.min(100, Math.max(0, (avg - 10) / 20 * 100));
+  document.getElementById('gauge-marker').style.left = pct + '%';
+  const desc = avg < 16 ? '📉 Historically cheap. Market may be undervalued.'
+    : avg < 22 ? '📊 Fair value range. Normal market conditions.'
+    : avg < 26 ? '⚠ Elevated. Market pricing in optimism.'
+    : '🔴 Historically expensive. Caution warranted.';
+  document.getElementById('gauge-desc').textContent = desc;
+}
+
+// ── Sectors ──
+function renderSectors(d) {
+  const sm = d.summary || {};
+  const sectorPEs = sm.sector_avg_pes || {};
+
+  // Count stocks and avg score per sector
+  const secData = {};
+  ALL_STOCKS.forEach(s => {
+    const sec = s.sector || 'Unknown';
+    if (!secData[sec]) secData[sec] = {stocks:0, scores:[], pe: sectorPEs[sec]};
+    secData[sec].stocks++;
+    if (s.total_score != null) secData[sec].scores.push(s.total_score);
+  });
+
+  const html = Object.entries(secData).sort((a,b)=>b[1].stocks-a[1].stocks).map(([sec,dat]) => {
+    const avgScore = dat.scores.length ? Math.round(dat.scores.reduce((a,b)=>a+b,0)/dat.scores.length) : null;
+    return `<div class="sector-card">
+      <div class="sector-name">${sec}</div>
+      <div class="sector-stat"><span class="sl">Stocks</span><span>${dat.stocks}</span></div>
+      <div class="sector-stat"><span class="sl">Avg Adj P/E</span><span>${dat.pe ? dat.pe+'×' : '—'}</span></div>
+      <div class="sector-stat"><span class="sl">Avg Score</span><span style="color:${scoreColor(avgScore)}">${avgScore ?? '—'}</span></div>
+    </div>`;
+  }).join('');
+  document.getElementById('sector-grid').innerHTML = html;
+}
+
+// ── Data Quality ──
+function renderDQ(d) {
+  const sm = d.summary || {};
+  document.getElementById('dq-clean').textContent = sm.clean_eps_count ?? '—';
+  document.getElementById('dq-partial').textContent = sm.partial_eps_count ?? '—';
+  document.getElementById('dq-unverified').textContent = sm.unverified_eps_count ?? '—';
+}
+
+// ── Table ──
+function renderTable() {
+  const search = (document.getElementById('search').value||'').toLowerCase();
+  const secFilter = (document.getElementById('sector-filter').value||'');
+
+  let stocks = ALL_STOCKS.filter(s => {
+    const matchSig = currentSignalFilter === 'ALL' || s.signal === currentSignalFilter;
+    const matchSearch = !search ||
+      (s.name||'').toLowerCase().includes(search) ||
+      (s.symbol||'').toLowerCase().includes(search);
+    const matchSec = !secFilter || s.sector === secFilter;
+    return matchSig && matchSearch && matchSec;
+  });
+
+  // Sort
+  stocks.sort((a,b) => {
+    let av = a[currentSort.key], bv = b[currentSort.key];
+    if (av == null) av = currentSort.dir > 0 ? Infinity : -Infinity;
+    if (bv == null) bv = currentSort.dir > 0 ? Infinity : -Infinity;
+    if (typeof av === 'string') return currentSort.dir * av.localeCompare(bv);
+    return currentSort.dir * (av - bv);
+  });
+
+  document.getElementById('stocks-body').innerHTML = stocks.map((s,i) => {
+    const sym = s.symbol.replace('.NS','');
+    const peClass = !s.adj_ttm_pe ? '' : s.adj_ttm_pe < 15 ? 'pe-cheap' : s.adj_ttm_pe < 22 ? 'pe-fair' : s.adj_ttm_pe < 28 ? 'pe-rich' : 'pe-exp';
+    const relCol = v => v == null ? '<span class="neu">—</span>' : v >= 0 ? `<span class="up">+${v}%</span>` : `<span class="dn">${v}%</span>`;
+    const num = v => v == null ? '<span class="neu">—</span>' : `<span class="num">${v}</span>`;
+    const pct = v => v == null ? '<span class="neu">—</span>' : v >= 0 ? `<span class="num up">+${v}%</span>` : `<span class="num dn">${v}%</span>`;
+    const scoreW = Math.round((s.total_score/100)*100);
+    const sc = s.total_score;
+
+    return `
+    <tr onclick="toggleExpand(${i}, '${s.symbol}')" style="cursor:pointer">
+      <td class="rank-cell">${s.rank}</td>
+      <td class="name-cell">
+        <div class="sname">${s.name.length>30?s.name.slice(0,30)+'…':s.name}</div>
+        <div class="ssym">${sym}</div>
+        <div class="ssec">${s.sector||''}</div>
+      </td>
+      <td><span class="sig sig-${s.signal||'HOLD'}">${s.signal||'—'}</span></td>
+      <td>
+        <div class="score-wrap">
+          <div class="score-bar-bg"><div class="score-bar-fill" style="width:${scoreW}%;background:${scoreColor(sc)}"></div></div>
+          <span class="score-num" style="color:${scoreColor(sc)}">${sc}</span>
+        </div>
+        <div class="score-blocks" style="margin-top:3px">
+          <span class="sb sb-f" title="Fundamental">${s.fundamental_score}/50</span>
+          <span class="sb sb-v" title="Valuation">${s.valuation_score}/20</span>
+          <span class="sb sb-m" title="Momentum">${s.momentum_score}/30</span>
+        </div>
+      </td>
+      <td class="num">₹${s.price != null ? s.price.toLocaleString('en-IN') : '—'}</td>
+      <td class="num">${s.market_cap_cr ? Math.round(s.market_cap_cr).toLocaleString('en-IN') : '—'}</td>
+      <td class="num">₹${s.ttm_adj_eps ?? '—'}</td>
+      <td><span class="eq eq-${s.eps_quality||'UNVERIFIED'}">${s.eps_quality||'?'}</span></td>
+      <td>${pct(s.eps_growth_pct)}</td>
+      <td class="${peClass} num">${s.adj_ttm_pe ? s.adj_ttm_pe+'×' : '—'}</td>
+      <td class="num">${s.derived_forward_pe ? s.derived_forward_pe+'×' : '—'}</td>
+      <td class="num">${s.analyst_forward_pe ? s.analyst_forward_pe+'×' : '—'}</td>
+      <td>${s.forward_eps_diverged ? `<span class="div-flag">⚠ ${s.forward_eps_diverge_pct}%</span>` : '<span style="color:#52525b;font-size:10px">—</span>'}</td>
+      <td class="num">${s.roe_pct != null ? s.roe_pct+'%' : '—'}</td>
+      <td class="num">${s.is_banking ? '<span style="color:#52525b;font-size:10px">Bank</span>' : (s.debt_to_equity ?? '—')}</td>
+      <td>${s.margin_trend === 'expanding' ? '<span class="up">↑ Expanding</span>' : s.margin_trend === 'contracting' ? '<span class="dn">↓ Contracting</span>' : '<span class="neu">→ Flat</span>'}</td>
+      <td>${relCol(s.rel_return_6m)}</td>
+      <td>${relCol(s.rel_return_3m)}</td>
+      <td>${relCol(s.rel_return_1m)}</td>
+    </tr>
+    <tr class="expand-row" id="expand-${i}">
+      <td colspan="20">
+        <div class="expand-inner" id="expand-inner-${i}"></div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Expand row ──
+function toggleExpand(i, symbol) {
+  const row = document.getElementById('expand-' + i);
+  const inner = document.getElementById('expand-inner-' + i);
+
+  if (expandedRow === i) {
+    row.classList.remove('open');
+    expandedRow = null;
+    return;
+  }
+  if (expandedRow !== null) {
+    document.getElementById('expand-' + expandedRow)?.classList.remove('open');
+  }
+
+  const s = ALL_STOCKS.find(x => x.symbol === symbol);
+  if (!s) return;
+
+  const scores = s.scores || {};
+  const scoreRows = Object.entries(scores).map(([k, v]) => {
+    const fillW = Math.round(v.score/v.max*100);
+    const blockCol = v.block === 'Fundamental' ? '#60a5fa' : v.block === 'Valuation' ? '#a78bfa' : '#34d399';
+    return `<div class="score-detail-row">
+      <span class="sdrl">${k.replace(/_/g,' ')}</span>
+      <div class="sdrb"><div class="sdrb-fill" style="width:${fillW}%;background:${blockCol}"></div></div>
+      <span class="sdrv">${v.score}/${v.max}</span>
+      <span class="sdrr">${v.reason}</span>
+    </div>`;
+  }).join('');
+
+  const epsRows = (s.eps_details||[]).map(q => `
+    <div class="expand-row-item">
+      <span class="lbl">${q.date}</span>
+      <span class="val">₹${q.adj_eps ?? '—'} <span style="color:#52525b;font-weight:400">(adj)</span></span>
+    </div>`).join('');
+
+  inner.innerHTML = `
+    <div class="expand-block">
+      <div class="expand-block-title">Score Breakdown</div>
+      ${scoreRows}
+      <div style="border-top:1px solid #1e1e2e;margin-top:8px;padding-top:8px;display:flex;justify-content:space-between">
+        <span style="font-size:11px;color:#71717a">Total</span>
+        <span style="font-size:14px;font-weight:800;color:${scoreColor(s.total_score)}">${s.total_score}/100</span>
+      </div>
+    </div>
+    <div class="expand-block">
+      <div class="expand-block-title">Adjusted EPS — Quarterly</div>
+      ${epsRows || '<div style="color:#52525b;font-size:11px">No quarterly EPS data</div>'}
+      <div style="border-top:1px solid #1e1e2e;margin-top:8px;padding-top:8px">
+        <div class="expand-row-item">
+          <span class="lbl">TTM Adj EPS</span><span class="val" style="color:#4ade80">₹${s.ttm_adj_eps ?? '—'}</span>
+        </div>
+        <div class="expand-row-item">
+          <span class="lbl">Yahoo Raw EPS</span><span class="val" style="color:#71717a">₹${s.yahoo_trailing_eps ?? '—'}</span>
+        </div>
+        <div class="expand-row-item">
+          <span class="lbl">EPS Quality</span><span class="val"><span class="eq eq-${s.eps_quality}">${s.eps_quality}</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="expand-block">
+      <div class="expand-block-title">Forward EPS — Option C</div>
+      <div class="expand-row-item"><span class="lbl">Our Derived Fwd EPS</span><span class="val" style="color:#60a5fa">₹${s.derived_forward_eps ?? '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">Analyst Consensus</span><span class="val" style="color:#a78bfa">₹${s.analyst_forward_eps ?? '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">Divergence</span><span class="val">${s.forward_eps_diverged ? `<span class="div-flag">⚠ ${s.forward_eps_diverge_pct}%</span>` : `<span style="color:#4ade80">${s.forward_eps_diverge_pct ?? '—'}% ✓</span>`}</span></div>
+      <div class="expand-row-item"><span class="lbl">Derived Fwd P/E</span><span class="val">${s.derived_forward_pe ? s.derived_forward_pe+'×' : '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">Analyst Fwd P/E</span><span class="val">${s.analyst_forward_pe ? s.analyst_forward_pe+'×' : '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">Analyst Count</span><span class="val">${s.analyst_count ?? '—'} ${s.analyst_count < 3 ? '⚠' : ''}</span></div>
+    </div>
+    <div class="expand-block">
+      <div class="expand-block-title">Key Metrics</div>
+      <div class="expand-row-item"><span class="lbl">Adj TTM P/E</span><span class="val">${s.adj_ttm_pe ? s.adj_ttm_pe+'×' : '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">Sector Avg P/E</span><span class="val">${s.sector_avg_pe ? s.sector_avg_pe+'×' : '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">PEG Ratio</span><span class="val">${s.peg ?? '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">ROE</span><span class="val">${s.roe_pct != null ? s.roe_pct+'%' : '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">D/E Ratio</span><span class="val">${s.is_banking ? 'Bank (exempt)' : (s.debt_to_equity ?? '—')}</span></div>
+      <div class="expand-row-item"><span class="lbl">Free Cash Flow</span><span class="val">${s.free_cashflow_cr ? '₹'+s.free_cashflow_cr.toLocaleString('en-IN')+' Cr' : '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">52W High / Low</span><span class="val">₹${s.fifty_two_wk_hi ?? '—'} / ₹${s.fifty_two_wk_lo ?? '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">Beta</span><span class="val">${s.beta ?? '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">Margin Trend</span><span class="val">${s.margin_trend ?? '—'}</span></div>
+      <div class="expand-row-item"><span class="lbl">Margins (last 4Q)</span><span class="val" style="font-size:10px">${(s.margin_history||[]).map(m=>m!=null?m+'%':'?').join(' → ')}</span></div>
+    </div>`;
+
+  row.classList.add('open');
+  expandedRow = i;
+}
+
+// ── Simulation tab ──
+function renderSimulation(d) {
+  const top25 = ALL_STOCKS.slice(0,25);
+  const date = d.generated_at ? new Date(d.generated_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : 'Today';
+  document.getElementById('sim-current-picks').innerHTML = `
+    <div style="background:#111118;border:1px solid #1e1e2e;border-radius:10px;padding:16px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f97316;margin-bottom:12px">
+        PREDICTION LOCKED IN — ${date}
+      </div>
+      <div style="font-size:11px;color:#71717a;margin-bottom:12px">
+        These are the 25 stocks predicted to outperform the Nifty 50 index over the next 12 months.
+        Check back in April 2027 to see how they did.
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+        ${top25.map(s=>`
+          <div style="background:#0d0d15;border-radius:6px;padding:8px;text-align:center">
+            <div style="font-size:11px;font-weight:700;color:#fff">${s.symbol.replace('.NS','')}</div>
+            <div style="font-size:10px;color:${scoreColor(s.total_score)}">${s.total_score}/100</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ── Helpers ──
+function scoreColor(sc) {
+  if (sc == null) return '#71717a';
+  if (sc >= 65) return '#4ade80';
+  if (sc >= 50) return '#a3e635';
+  if (sc >= 35) return '#fbbf24';
+  if (sc >= 20) return '#fb923c';
+  return '#f87171';
+}
+
+function populateSectorFilter() {
+  const sectors = [...new Set(ALL_STOCKS.map(s=>s.sector).filter(Boolean))].sort();
+  const sel = document.getElementById('sector-filter');
+  sectors.forEach(sec => {
+    const opt = document.createElement('option');
+    opt.value = sec; opt.textContent = sec;
+    sel.appendChild(opt);
+  });
+}
+
+function filterSignal(sig, btn) {
+  currentSignalFilter = sig;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function filterTable() { renderTable(); }
+
+function sortTable(key) {
+  if (currentSort.key === key) {
+    currentSort.dir *= -1;
+  } else {
+    currentSort.key = key;
+    currentSort.dir = key === 'rank' || key === 'name' ? 1 : -1;
+  }
+  document.querySelectorAll('thead th').forEach(th => th.classList.remove('sorted'));
+  document.querySelectorAll('thead th .sort-arrow').forEach(a => a.textContent = '↕');
+  // Find the clicked header — update arrow
+  const arrow = currentSort.dir === 1 ? '↑' : '↓';
+  document.getElementById('sort-info').textContent = 'Sorted by: ' + currentSort.key.replace(/_/g,' ') + ' ' + arrow;
+  renderTable();
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'stocks') renderTable();
+}
+
+// ── Init ──
+loadData();
+</script>
+</body>
+</html>

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nifty 50 Dashboard — Concept & Explainer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f0f14; color: #e0e0e0; }
+
+  /* NAV */
+  nav { background: #1a1a24; border-bottom: 1px solid #2a2a3a; padding: 14px 32px; display: flex; align-items: center; gap: 24px; }
+  nav .logo { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+  nav .logo span { color: #f97316; }
+  nav .tabs { display: flex; gap: 6px; margin-left: auto; }
+  nav .tab { padding: 7px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; color: #888; border: 1px solid transparent; }
+  nav .tab.active { background: #f97316; color: #fff; font-weight: 600; }
+
+  /* SECTIONS */
+  .section { padding: 36px 32px; border-bottom: 1px solid #1e1e2e; }
+  .section-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #f97316; margin-bottom: 8px; }
+  .section-heading { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .section-sub { font-size: 14px; color: #888; line-height: 1.6; max-width: 700px; margin-bottom: 28px; }
+
+  /* EXPLAINER CARDS */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .card { background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 12px; padding: 20px; }
+  .card .icon { font-size: 24px; margin-bottom: 12px; }
+  .card .label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #f97316; margin-bottom: 6px; font-weight: 700; }
+  .card h3 { font-size: 15px; color: #fff; margin-bottom: 8px; font-weight: 600; }
+  .card p { font-size: 13px; color: #999; line-height: 1.6; }
+  .card .formula { background: #12121a; border-left: 3px solid #f97316; border-radius: 4px; padding: 10px 14px; margin-top: 12px; font-family: monospace; font-size: 12px; color: #f97316; }
+  .card.highlight { border-color: #f97316; background: #1e1610; }
+
+  /* EPS PIPELINE */
+  .pipeline { display: flex; align-items: stretch; gap: 0; margin: 24px 0; flex-wrap: wrap; }
+  .pipe-step { flex: 1; min-width: 160px; background: #1a1a24; border: 1px solid #2a2a3a; padding: 18px 16px; position: relative; }
+  .pipe-step:not(:last-child)::after { content: '→'; position: absolute; right: -14px; top: 50%; transform: translateY(-50%); color: #f97316; font-size: 18px; z-index: 10; background: #0f0f14; padding: 2px; }
+  .pipe-step .step-num { font-size: 10px; letter-spacing: 1px; color: #f97316; font-weight: 700; margin-bottom: 6px; }
+  .pipe-step h4 { font-size: 13px; color: #fff; font-weight: 600; margin-bottom: 6px; }
+  .pipe-step p { font-size: 12px; color: #888; line-height: 1.5; }
+  .pipe-step.good { border-color: #22c55e; }
+  .pipe-step.warn { border-color: #eab308; }
+  .pipe-step.bad { border-color: #ef4444; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-top: 8px; }
+  .badge.green { background: #14532d; color: #22c55e; }
+  .badge.yellow { background: #422006; color: #eab308; }
+  .badge.red { background: #450a0a; color: #ef4444; }
+
+  /* MOCK DASHBOARD */
+  .mock { background: #13131d; border: 1px solid #2a2a3a; border-radius: 14px; overflow: hidden; }
+  .mock-header { background: #1a1a24; padding: 12px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #2a2a3a; }
+  .mock-header .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mock-title { font-size: 13px; color: #888; margin-left: 6px; }
+
+  /* KPI ROW */
+  .kpi-row { display: flex; gap: 1px; background: #2a2a3a; border-bottom: 1px solid #2a2a3a; }
+  .kpi { flex: 1; background: #1a1a24; padding: 16px 18px; }
+  .kpi .kpi-label { font-size: 10px; color: #666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .kpi .kpi-val { font-size: 20px; font-weight: 700; color: #fff; }
+  .kpi .kpi-sub { font-size: 11px; color: #22c55e; margin-top: 2px; }
+  .kpi .kpi-sub.red { color: #ef4444; }
+
+  /* TABLE MOCK */
+  .table-mock { padding: 16px 0; }
+  .t-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1.2fr; padding: 8px 20px; font-size: 10px; color: #666; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #1e1e2e; }
+  .t-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1.2fr; padding: 10px 20px; font-size: 13px; border-bottom: 1px solid #1a1a24; align-items: center; }
+  .t-row:hover { background: #1e1e2a; }
+  .t-row .name { font-weight: 600; color: #fff; }
+  .t-row .name span { display: block; font-size: 10px; color: #555; font-weight: 400; }
+  .t-row .up { color: #22c55e; }
+  .t-row .dn { color: #ef4444; }
+  .t-row .neutral { color: #888; }
+  .pe-chip { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+  .pe-cheap { background: #14532d; color: #22c55e; }
+  .pe-fair { background: #1c2a1c; color: #86efac; }
+  .pe-rich { background: #422006; color: #fb923c; }
+  .pe-expensive { background: #450a0a; color: #ef4444; }
+
+  /* CHART MOCK */
+  .chart-area { padding: 20px; display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .chart-box { background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 8px; padding: 16px; }
+  .chart-box .chart-title { font-size: 12px; color: #888; margin-bottom: 14px; font-weight: 600; }
+
+  /* SVG SPARKLINE */
+  .bars { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
+  .bar { flex: 1; border-radius: 3px 3px 0 0; opacity: 0.85; }
+
+  /* PE GAUGE */
+  .gauge-wrap { display: flex; flex-direction: column; align-items: center; padding: 12px 0; }
+  .gauge-label { font-size: 11px; color: #666; margin-bottom: 8px; }
+  .gauge-val { font-size: 32px; font-weight: 700; color: #f97316; }
+  .gauge-desc { font-size: 11px; color: #888; margin-top: 4px; }
+  .gauge-bar { width: 100%; height: 8px; border-radius: 4px; background: linear-gradient(to right, #22c55e, #eab308, #ef4444); margin: 12px 0 4px; position: relative; }
+  .gauge-marker { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid #f97316; position: absolute; top: -3px; transform: translateX(-50%); }
+  .gauge-ticks { display: flex; justify-content: space-between; font-size: 9px; color: #555; }
+
+  /* EPS COMPARISON */
+  .eps-row { display: flex; gap: 8px; margin-top: 6px; }
+  .eps-block { flex: 1; background: #12121a; border-radius: 6px; padding: 10px; text-align: center; }
+  .eps-block .el { font-size: 9px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .eps-block .ev { font-size: 16px; font-weight: 700; }
+  .eps-block .ev.ttm { color: #60a5fa; }
+  .eps-block .ev.fwd { color: #f97316; }
+  .eps-block .ev.adj { color: #22c55e; }
+
+  /* FLOW DIAGRAM */
+  .flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0; }
+  .flow-node { background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 10px; padding: 16px; text-align: center; position: relative; }
+  .flow-node .fn-icon { font-size: 22px; margin-bottom: 8px; }
+  .flow-node .fn-label { font-size: 10px; color: #f97316; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 4px; }
+  .flow-node h4 { font-size: 13px; color: #fff; margin-bottom: 6px; }
+  .flow-node p { font-size: 11px; color: #777; line-height: 1.5; }
+  .arrow-row { display: flex; justify-content: center; align-items: center; gap: 12px; margin: 4px 0; color: #f97316; font-size: 22px; }
+
+  /* SCHEDULE MOCK */
+  .schedule-box { background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 10px; padding: 20px; }
+  .s-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1e1e2e; }
+  .s-row:last-child { border: none; }
+  .s-time { font-size: 12px; color: #f97316; font-weight: 700; width: 60px; }
+  .s-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .s-text { font-size: 13px; color: #ccc; }
+  .s-tag { margin-left: auto; font-size: 10px; background: #14532d; color: #22c55e; padding: 3px 8px; border-radius: 4px; font-weight: 700; }
+
+  /* CALLOUT */
+  .callout { background: #1c1608; border: 1px solid #f97316; border-radius: 10px; padding: 18px 22px; margin: 20px 0; }
+  .callout h4 { font-size: 14px; color: #f97316; margin-bottom: 8px; font-weight: 700; }
+  .callout p { font-size: 13px; color: #ccc; line-height: 1.7; }
+
+  /* RESPONSIVE */
+  @media (max-width: 700px) {
+    .pipeline { flex-direction: column; }
+    .pipe-step:not(:last-child)::after { content: '↓'; right: 50%; top: auto; bottom: -14px; }
+    .kpi-row { flex-direction: column; }
+    .chart-area { grid-template-columns: 1fr; }
+    .flow { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">NIFTY <span>50</span> DASHBOARD</div>
+  <div class="tabs">
+    <div class="tab active">Overview</div>
+    <div class="tab">Stocks</div>
+    <div class="tab">EPS Tracker</div>
+    <div class="tab">Valuation</div>
+  </div>
+</nav>
+
+<!-- SECTION 1: WHAT IS THIS -->
+<div class="section">
+  <div class="section-title">The Big Picture</div>
+  <div class="section-heading">What this dashboard does — and why it matters</div>
+  <div class="section-sub">
+    Most people look at stock prices. This dashboard goes one level deeper: it tracks <strong style="color:#fff">whether a stock is cheap or expensive relative to its actual earnings</strong>.
+    Price alone means nothing. ₹1,000 can be cheap for one company and wildly expensive for another. The key is <strong style="color:#fff">EPS × P/E × Growth</strong>.
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="icon">📈</div>
+      <div class="label">Metric 1</div>
+      <h3>Price (daily)</h3>
+      <p>The current market price of one share. Changes every second during market hours. We pull this once at end-of-day for a clean daily snapshot.</p>
+      <div class="formula">Price = Market signal of what investors collectively believe the company is worth right now</div>
+    </div>
+    <div class="card">
+      <div class="icon">🏢</div>
+      <div class="label">Metric 2</div>
+      <h3>Market Cap</h3>
+      <p>Total value of the entire company. If you wanted to buy the whole company outright, this is what you'd pay. It anchors everything else.</p>
+      <div class="formula">Market Cap = Price × Shares Outstanding</div>
+    </div>
+    <div class="card">
+      <div class="icon">💰</div>
+      <div class="label">Metric 3</div>
+      <h3>EPS (Earnings Per Share)</h3>
+      <p>How much profit the company made for each share. This is the <em>real</em> number — the actual earnings engine. Price divided by EPS gives you P/E.</p>
+      <div class="formula">EPS = Net Profit (adjusted) ÷ Shares Outstanding</div>
+    </div>
+    <div class="card highlight">
+      <div class="icon">🎯</div>
+      <div class="label">The Core Ratio</div>
+      <h3>P/E Ratio — The Valuation Signal</h3>
+      <p>How many years of earnings you're paying for today. A P/E of 20 means you're paying ₹20 for every ₹1 of annual profit. Compare this across stocks and sectors.</p>
+      <div class="formula">P/E = Price ÷ EPS &nbsp;|&nbsp; TTM P/E uses last 12m earnings &nbsp;|&nbsp; Forward P/E uses next year's estimate</div>
+    </div>
+    <div class="card">
+      <div class="icon">🚀</div>
+      <div class="label">Metric 4</div>
+      <h3>Growth Rate</h3>
+      <p>How fast is EPS growing year-on-year? A company with a P/E of 40 but 40% EPS growth might actually be cheap. Growth justifies premium.</p>
+      <div class="formula">EPS Growth = (EPS this year − EPS last year) ÷ EPS last year × 100</div>
+    </div>
+    <div class="card">
+      <div class="icon">⚡</div>
+      <div class="label">Metric 5</div>
+      <h3>PEG Ratio</h3>
+      <p>P/E divided by growth rate. PEG &lt; 1 = potentially undervalued. PEG &gt; 2 = potentially overpriced. The single most useful ratio for growth investors.</p>
+      <div class="formula">PEG = P/E ÷ EPS Growth Rate (%)</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: THE EPS PROBLEM -->
+<div class="section">
+  <div class="section-title">The Hard Part</div>
+  <div class="section-heading">Why EPS is tricky — and how we guarantee clean data</div>
+  <div class="section-sub">
+    Raw EPS from any data source is often dirty. Companies report "exceptional items" — one-time gains or losses — that inflate or deflate EPS artificially.
+    If you use dirty EPS, your entire P/E calculation is wrong. Here's the pipeline we use to guarantee clean EPS.
+  </div>
+
+  <div class="callout">
+    <h4>⚠️ Real Example — Why this matters</h4>
+    <p>Imagine Tata Motors sells a factory and books a ₹5,000 crore one-time gain. Their reported EPS for that quarter shoots up to ₹45. But normally they earn ₹8/share.
+    If you use ₹45 as EPS, the P/E looks like 4× (insanely cheap). If you use the real ₹8, P/E is 22× (more realistic).
+    <strong style="color:#f97316">One wrong number. Completely wrong conclusion.</strong></p>
+  </div>
+
+  <div style="margin-top: 24px; margin-bottom: 8px; font-size: 13px; color: #888; font-weight: 600;">THE EPS CLEANING PIPELINE →</div>
+  <div class="pipeline">
+    <div class="pipe-step bad">
+      <div class="step-num">STEP 1</div>
+      <h4>Raw Reported EPS</h4>
+      <p>Pulled from Yahoo Finance quarterly financials. Includes everything the company chose to report — good and bad.</p>
+      <span class="badge red">⚠ Dirty</span>
+    </div>
+    <div class="pipe-step warn">
+      <div class="step-num">STEP 2</div>
+      <h4>Flag Exceptional Items</h4>
+      <p>We check if "Exceptional Items" line exists in the P&L. If yes, we record its value (positive = one-time gain, negative = one-time loss).</p>
+      <span class="badge yellow">🔍 Checking</span>
+    </div>
+    <div class="pipe-step warn">
+      <div class="step-num">STEP 3</div>
+      <h4>Adjust for Minority Interest</h4>
+      <p>If company owns 60% of a subsidiary, only 60% of that subsidiary's profit belongs to shareholders. We strip out the 40% minority portion.</p>
+      <span class="badge yellow">🔍 Adjusting</span>
+    </div>
+    <div class="pipe-step warn">
+      <div class="step-num">STEP 4</div>
+      <h4>Compute Adjusted Net Profit</h4>
+      <p>Adjusted Profit = Reported Profit − Exceptional Items (after tax). This gives us recurring, operating profit only.</p>
+      <span class="badge yellow">🧮 Computing</span>
+    </div>
+    <div class="pipe-step good">
+      <div class="step-num">STEP 5</div>
+      <h4>Clean Adjusted EPS</h4>
+      <p>Divide adjusted profit by shares outstanding. This is the number we trust. Flag it as "ADJ" in the dashboard.</p>
+      <span class="badge green">✓ Clean</span>
+    </div>
+  </div>
+
+  <div style="margin-top: 28px;">
+    <div style="font-size: 13px; color: #888; font-weight: 600; margin-bottom: 16px;">THREE VERSIONS OF EPS WE TRACK:</div>
+    <div class="eps-row">
+      <div class="eps-block">
+        <div class="el">TTM EPS</div>
+        <div class="ev ttm">Trailing 12 Months</div>
+        <div style="font-size: 11px; color: #555; margin-top: 6px; line-height: 1.5;">Sum of last 4 quarters of adjusted EPS. This is what the company <em>actually earned</em> in the past year. Most reliable.</div>
+      </div>
+      <div class="eps-block">
+        <div class="el">Forward EPS (FY26)</div>
+        <div class="ev fwd">Analyst Estimate</div>
+        <div style="font-size: 11px; color: #555; margin-top: 6px; line-height: 1.5;">What analysts expect EPS to be next year. Used for forward P/E. Less certain but more forward-looking.</div>
+      </div>
+      <div class="eps-block">
+        <div class="el">Mid-Quarter EPS</div>
+        <div class="ev adj">Rolling Average</div>
+        <div style="font-size: 11px; color: #555; margin-top: 6px; line-height: 1.5;">Between quarterly results, we use the most recent quarter's annualised run-rate or analyst consensus to keep numbers fresh.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: DATA FLOW -->
+<div class="section">
+  <div class="section-title">The System</div>
+  <div class="section-heading">How data flows — from Yahoo Finance to your screen</div>
+  <div class="section-sub">Every day at market close (around 4pm IST), a Python script runs automatically and refreshes everything.</div>
+
+  <div class="flow">
+    <div class="flow-node">
+      <div class="fn-icon">🌐</div>
+      <div class="fn-label">Source</div>
+      <h4>Yahoo Finance</h4>
+      <p>Free, reliable. Covers all NSE-listed stocks with suffix ".NS". Provides price, volume, shares outstanding, financial statements.</p>
+    </div>
+    <div class="flow-node">
+      <div class="fn-icon">🐍</div>
+      <div class="fn-label">Engine</div>
+      <h4>Python (yfinance)</h4>
+      <p>A script fetches data for all 50 Nifty stocks in one run. Cleans EPS, computes P/E, PEG, Market Cap, growth rates. Takes ~2 minutes.</p>
+    </div>
+    <div class="flow-node">
+      <div class="fn-icon">💾</div>
+      <div class="fn-label">Storage</div>
+      <h4>Local Excel / CSV</h4>
+      <p>Results saved to two sheets: <strong style="color:#fff">Daily Prices</strong> (appends each day) and <strong style="color:#fff">Fundamentals</strong> (updated quarterly).</p>
+    </div>
+  </div>
+  <div class="arrow-row">↓</div>
+  <div class="flow" style="grid-template-columns: 1fr 1fr;">
+    <div class="flow-node">
+      <div class="fn-icon">📊</div>
+      <div class="fn-label">Output A</div>
+      <h4>Interactive Dashboard</h4>
+      <p>An HTML file (or Excel) you open in your browser. Sortable table, charts, valuation signals. Always shows the latest data.</p>
+    </div>
+    <div class="flow-node">
+      <div class="fn-icon">⏰</div>
+      <div class="fn-label">Output B</div>
+      <h4>Daily Auto-Update</h4>
+      <p>Scheduled to run once per day at market close. No manual work needed. You just open the dashboard and the numbers are fresh.</p>
+    </div>
+  </div>
+
+  <div style="margin-top: 28px;">
+    <div style="font-size: 13px; color: #888; font-weight: 600; margin-bottom: 12px;">DAILY SCHEDULE:</div>
+    <div class="schedule-box">
+      <div class="s-row">
+        <div class="s-time">15:30</div>
+        <div class="s-dot" style="background:#f97316"></div>
+        <div class="s-text">Market closes (NSE). Last price of the day locked in.</div>
+        <div class="s-tag">TRIGGER</div>
+      </div>
+      <div class="s-row">
+        <div class="s-time">16:00</div>
+        <div class="s-dot" style="background:#60a5fa"></div>
+        <div class="s-text">Python script runs → fetches closing prices for all 50 stocks via Yahoo Finance.</div>
+      </div>
+      <div class="s-row">
+        <div class="s-time">16:02</div>
+        <div class="s-dot" style="background:#60a5fa"></div>
+        <div class="s-text">EPS, shares outstanding, and financial data refreshed (if new quarter results are available).</div>
+      </div>
+      <div class="s-row">
+        <div class="s-time">16:04</div>
+        <div class="s-dot" style="background:#60a5fa"></div>
+        <div class="s-text">All metrics computed: Market Cap, TTM P/E, Forward P/E, PEG, EPS Growth.</div>
+      </div>
+      <div class="s-row">
+        <div class="s-time">16:05</div>
+        <div class="s-dot" style="background:#22c55e"></div>
+        <div class="s-text">Dashboard updated. Files saved. Ready to view.</div>
+        <div class="s-tag">DONE</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: MOCK DASHBOARD -->
+<div class="section">
+  <div class="section-title">The Mock</div>
+  <div class="section-heading">What the actual dashboard will look like</div>
+  <div class="section-sub">This is a pixel-accurate mock of the dashboard. Every number here is illustrative — but the layout, colors, and logic are exactly what we'll build.</div>
+
+  <div class="mock">
+    <div class="mock-header">
+      <div class="dot" style="background:#ef4444"></div>
+      <div class="dot" style="background:#eab308"></div>
+      <div class="dot" style="background:#22c55e"></div>
+      <div class="mock-title">nifty-dashboard.html — Last updated: Today, 16:05 IST</div>
+    </div>
+
+    <!-- KPI BAR -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Nifty 50 Index</div>
+        <div class="kpi-val">22,419</div>
+        <div class="kpi-sub">▲ +1.2% today</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Avg TTM P/E (Index)</div>
+        <div class="kpi-val">21.4×</div>
+        <div class="kpi-sub red">▼ vs 22.1× last week</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Median EPS Growth</div>
+        <div class="kpi-val">14.2%</div>
+        <div class="kpi-sub">▲ YoY, Nifty 50</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Stocks — Cheap P/E</div>
+        <div class="kpi-val">11 / 50</div>
+        <div class="kpi-sub">P/E below 15×</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Data Freshness</div>
+        <div class="kpi-val" style="color:#22c55e; font-size:16px;">✓ Live</div>
+        <div class="kpi-sub">Updated 16:05 today</div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-mock">
+      <div class="t-header">
+        <span>Company</span>
+        <span>Price (₹)</span>
+        <span>Mkt Cap</span>
+        <span>TTM EPS (adj)</span>
+        <span>TTM P/E</span>
+        <span>EPS Growth</span>
+        <span>Valuation</span>
+      </div>
+      <div class="t-row">
+        <span class="name">Reliance Industries<span>RELIANCE.NS</span></span>
+        <span class="up">2,847 ▲1.4%</span>
+        <span class="neutral">19.2L Cr</span>
+        <span class="neutral">₹98.4</span>
+        <span class="neutral">28.9×</span>
+        <span class="up">+18%</span>
+        <span><span class="pe-chip pe-rich">Rich</span></span>
+      </div>
+      <div class="t-row">
+        <span class="name">HDFC Bank<span>HDFCBANK.NS</span></span>
+        <span class="dn">1,612 ▼0.3%</span>
+        <span class="neutral">12.1L Cr</span>
+        <span class="neutral">₹84.2</span>
+        <span class="neutral">19.1×</span>
+        <span class="up">+12%</span>
+        <span><span class="pe-chip pe-fair">Fair</span></span>
+      </div>
+      <div class="t-row">
+        <span class="name">Infosys<span>INFY.NS</span></span>
+        <span class="up">1,489 ▲0.8%</span>
+        <span class="neutral">6.2L Cr</span>
+        <span class="neutral">₹62.1</span>
+        <span class="neutral">23.9×</span>
+        <span class="dn">+6%</span>
+        <span><span class="pe-chip pe-rich">Rich</span></span>
+      </div>
+      <div class="t-row">
+        <span class="name">Coal India<span>COALINDIA.NS</span></span>
+        <span class="up">482 ▲2.1%</span>
+        <span class="neutral">2.9L Cr</span>
+        <span class="neutral">₹42.8</span>
+        <span class="neutral">11.2×</span>
+        <span class="up">+22%</span>
+        <span><span class="pe-chip pe-cheap">Cheap</span></span>
+      </div>
+      <div class="t-row">
+        <span class="name">TCS<span>TCS.NS</span></span>
+        <span class="dn">3,621 ▼0.5%</span>
+        <span class="neutral">13.2L Cr</span>
+        <span class="neutral">₹124.3</span>
+        <span class="neutral">29.1×</span>
+        <span class="dn">+8%</span>
+        <span><span class="pe-chip pe-expensive">Expensive</span></span>
+      </div>
+      <div class="t-row" style="color:#555; font-style:italic; font-size:12px; justify-content:center;">
+        <span style="grid-column: span 7;">... 45 more stocks ...</span>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="chart-area">
+      <div class="chart-box">
+        <div class="chart-title">📊 EPS Growth vs P/E — Nifty 50 Scatter (illustrative)</div>
+        <div style="height: 120px; position: relative; border-left: 1px solid #2a2a3a; border-bottom: 1px solid #2a2a3a; margin-top: 8px;">
+          <div style="position:absolute; bottom:30px; left:15%; width:10px; height:10px; border-radius:50%; background:#f97316;" title="Reliance"></div>
+          <div style="position:absolute; bottom:50px; left:25%; width:10px; height:10px; border-radius:50%; background:#60a5fa;" title="HDFC Bank"></div>
+          <div style="position:absolute; bottom:20px; left:60%; width:10px; height:10px; border-radius:50%; background:#22c55e;" title="Coal India"></div>
+          <div style="position:absolute; bottom:40px; left:70%; width:10px; height:10px; border-radius:50%; background:#ef4444;" title="TCS"></div>
+          <div style="position:absolute; bottom:60px; left:40%; width:10px; height:10px; border-radius:50%; background:#a78bfa;" title="Infosys"></div>
+          <div style="position:absolute; bottom:2px; left:0; right:0; text-align:center; font-size:9px; color:#555;">← Low P/E &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; High P/E →</div>
+          <div style="position:absolute; top:0; bottom:0; left:2px; writing-mode: vertical-rl; text-align:center; font-size:9px; color:#555; transform:rotate(180deg);">EPS Growth →</div>
+        </div>
+        <div style="font-size:11px; color:#555; margin-top:8px;">Stocks in top-left = fast growth, low P/E = potential opportunity</div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">🎯 Index P/E Gauge</div>
+        <div class="gauge-wrap">
+          <div class="gauge-label">Nifty 50 Avg TTM P/E</div>
+          <div class="gauge-val">21.4×</div>
+          <div class="gauge-bar">
+            <div class="gauge-marker" style="left: 58%"></div>
+          </div>
+          <div class="gauge-ticks"><span>10×</span><span>15×</span><span>20×</span><span>25×</span><span>30×+</span></div>
+          <div class="gauge-desc" style="margin-top:10px; color:#eab308;">Slightly elevated. Historically fair range: 18–22×</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: WHAT YOU GET -->
+<div class="section">
+  <div class="section-title">The Payoff</div>
+  <div class="section-heading">What you can actually do with this dashboard</div>
+  <div class="section-sub">Here's what becomes possible once this is built:</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="icon">🔍</div>
+      <div class="label">Use Case 1</div>
+      <h3>Spot Undervalued Stocks</h3>
+      <p>Sort by P/E ascending. Any stock with P/E below 15× AND EPS growth above 15% is worth investigating. The dashboard surfaces these instantly.</p>
+    </div>
+    <div class="card">
+      <div class="icon">⚠️</div>
+      <div class="label">Use Case 2</div>
+      <h3>Avoid Overvalued Traps</h3>
+      <p>P/E of 50× with 8% growth? PEG of 6×? The dashboard flags these clearly so you don't buy into hype-driven pricing.</p>
+    </div>
+    <div class="card">
+      <div class="icon">📉</div>
+      <div class="label">Use Case 3</div>
+      <h3>Track Market Sentiment</h3>
+      <p>When the index P/E crosses 24×, the market is historically expensive. When it drops below 18×, it's cheap. This gauge tells you where we are every day.</p>
+    </div>
+    <div class="card">
+      <div class="icon">📅</div>
+      <div class="label">Use Case 4</div>
+      <h3>Quarter-by-Quarter EPS Story</h3>
+      <p>Watch EPS for each company evolve across quarters. Is it growing consistently? Did it spike due to an exceptional item? The history tells the real story.</p>
+    </div>
+    <div class="card">
+      <div class="icon">⚖️</div>
+      <div class="label">Use Case 5</div>
+      <h3>Compare Within Sectors</h3>
+      <p>HDFC Bank vs ICICI Bank — same sector, different P/E. Which one gives you more earnings for your money? The dashboard answers this in one glance.</p>
+    </div>
+    <div class="card highlight">
+      <div class="icon">🧠</div>
+      <div class="label">The Real Edge</div>
+      <h3>Clean Data = Better Decisions</h3>
+      <p>Because our EPS is adjusted for exceptional items and minority interest, our P/E ratios are trustworthy. Most free screeners don't do this. <strong style="color:#f97316">That's the edge.</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div style="padding: 24px 32px; background: #1a1a24; border-top: 1px solid #2a2a3a; font-size: 12px; color: #555; text-align: center;">
+  Nifty 50 Dashboard — Concept Document &nbsp;|&nbsp; Data: Yahoo Finance (yfinance) &nbsp;|&nbsp; Built for Naushi &nbsp;|&nbsp; April 2026
+</div>
+
+</body>
+</html>

@@ -1,0 +1,832 @@
+"""
+Nifty 50 Dashboard — Data Fetch Script
+========================================
+Fetches data for all 50 Nifty stocks from Yahoo Finance.
+Computes adjusted EPS, scoring model, and saves to nifty_data.json.
+
+Run this script once a day after market close (4pm IST).
+"""
+
+import json
+import time
+import logging
+import numpy as np
+from datetime import datetime, timedelta
+
+import yfinance as yf
+import pandas as pd
+
+# ─────────────────────────────────────────────
+# LOGGING
+# ─────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  %(levelname)s  %(message)s",
+    handlers=[
+        logging.FileHandler("fetch_log.txt"),
+        logging.StreamHandler()
+    ]
+)
+log = logging.getLogger(__name__)
+
+# ─────────────────────────────────────────────
+# NIFTY 50 CONSTITUENTS  (as of April 2026)
+# Update this list if NSE changes the composition
+# ─────────────────────────────────────────────
+NIFTY50 = [
+    "RELIANCE.NS",   "TCS.NS",        "HDFCBANK.NS",   "BHARTIARTL.NS",
+    "ICICIBANK.NS",  "INFOSYS.NS",    "SBIN.NS",        "HINDUNILVR.NS",
+    "ITC.NS",        "LT.NS",         "KOTAKBANK.NS",   "AXISBANK.NS",
+    "MARUTI.NS",     "SUNPHARMA.NS",  "TITAN.NS",       "BAJFINANCE.NS",
+    "HCLTECH.NS",    "ASIANPAINT.NS", "ADANIENT.NS",    "ADANIPORTS.NS",
+    "ULTRACEMCO.NS", "WIPRO.NS",      "NESTLEIND.NS",   "JSWSTEEL.NS",
+    "TATAMOTORS.NS", "ONGC.NS",       "NTPC.NS",        "POWERGRID.NS",
+    "COALINDIA.NS",  "M&M.NS",        "BAJAJFINSV.NS",  "TECHM.NS",
+    "INDUSINDBK.NS", "HINDALCO.NS",   "TATASTEEL.NS",   "BAJAJ-AUTO.NS",
+    "GRASIM.NS",     "CIPLA.NS",      "DRREDDY.NS",     "DIVISLAB.NS",
+    "BRITANNIA.NS",  "EICHERMOT.NS",  "HEROMOTOCO.NS",  "APOLLOHOSP.NS",
+    "TRENT.NS",      "BEL.NS",        "SHRIRAMFIN.NS",  "BPCL.NS",
+    "TATACONSUM.NS", "SBILIFE.NS",
+]
+
+# Banking stocks — high D/E is structural, not a risk signal
+BANKING_SECTORS = {"Financial Services", "Banking"}
+
+# NSE market holidays 2026 (add/update annually from NSE website)
+NSE_HOLIDAYS_2026 = {
+    "2026-01-26",  # Republic Day
+    "2026-02-19",  # Chhatrapati Shivaji Maharaj Jayanti
+    "2026-03-20",  # Holi
+    "2026-04-02",  # Ram Navami
+    "2026-04-03",  # Good Friday
+    "2026-04-14",  # Dr. Ambedkar Jayanti
+    "2026-05-01",  # Maharashtra Day
+    "2026-08-15",  # Independence Day
+    "2026-08-27",  # Ganesh Chaturthi
+    "2026-10-02",  # Gandhi Jayanti
+    "2026-10-20",  # Diwali Laxmi Pujan
+    "2026-10-21",  # Diwali Balipratipada
+    "2026-11-05",  # Guru Nanak Jayanti
+    "2026-12-25",  # Christmas
+}
+
+# ─────────────────────────────────────────────
+# SCORING MODEL WEIGHTS  (must sum to 100)
+# ─────────────────────────────────────────────
+SCORING_MODEL = {
+    # BLOCK 1 — Fundamental Quality (50 pts)
+    "eps_growth":        {"max": 15, "block": "Fundamental"},
+    "margin_trend":      {"max": 10, "block": "Fundamental"},
+    "roe":               {"max": 10, "block": "Fundamental"},
+    "debt_to_equity":    {"max": 10, "block": "Fundamental"},
+    "eps_consistency":   {"max":  5, "block": "Fundamental"},
+    # BLOCK 2 — Valuation (20 pts)
+    "pe_vs_sector":      {"max": 10, "block": "Valuation"},
+    "peg_ratio":         {"max": 10, "block": "Valuation"},
+    # BLOCK 3 — Momentum (30 pts)
+    "momentum_6m":       {"max": 15, "block": "Momentum"},
+    "momentum_3m":       {"max": 10, "block": "Momentum"},
+    "momentum_1m":       {"max":  5, "block": "Momentum"},
+}
+
+INDIA_TAX_RATE = 0.25  # Standard Indian corporate tax rate for exceptional item adjustment
+
+# ─────────────────────────────────────────────
+# HELPERS
+# ─────────────────────────────────────────────
+
+def is_market_holiday():
+    today = datetime.now().strftime("%Y-%m-%d")
+    if today in NSE_HOLIDAYS_2026:
+        log.info(f"Today ({today}) is an NSE holiday. Skipping update.")
+        return True
+    if datetime.now().weekday() >= 5:
+        log.info("Today is a weekend. Skipping update.")
+        return True
+    return False
+
+
+def safe_get(d, key, default=None):
+    """Safely get a value from a dict, returning default if missing or NaN."""
+    val = d.get(key, default)
+    if val is None:
+        return default
+    try:
+        if np.isnan(float(val)):
+            return default
+    except (TypeError, ValueError):
+        pass
+    return val
+
+
+def crores(value):
+    """Convert raw rupee value to crores. Returns None if invalid."""
+    if value is None:
+        return None
+    try:
+        return round(float(value) / 1e7, 2)
+    except (TypeError, ValueError):
+        return None
+
+
+def pct(value):
+    """Convert decimal ratio to percentage. E.g. 0.15 → 15.0"""
+    if value is None:
+        return None
+    try:
+        return round(float(value) * 100, 2)
+    except (TypeError, ValueError):
+        return None
+
+
+def safe_round(value, decimals=2):
+    if value is None:
+        return None
+    try:
+        return round(float(value), decimals)
+    except (TypeError, ValueError):
+        return None
+
+
+# ─────────────────────────────────────────────
+# ADJUSTED EPS COMPUTATION
+# ─────────────────────────────────────────────
+
+def compute_adjusted_eps(ticker_obj, shares_outstanding):
+    """
+    Computes quarterly adjusted EPS by stripping exceptional items
+    and minority interest from reported net income.
+
+    Returns:
+        adj_eps_quarters: list of up to 4 quarterly adjusted EPS values (newest first)
+        ttm_adj_eps:      sum of last 4 quarters (Trailing Twelve Months)
+        eps_quality:      "CLEAN", "PARTIAL", or "UNVERIFIED"
+        eps_details:      dict with per-quarter breakdown for transparency
+    """
+    try:
+        inc = ticker_obj.quarterly_income_stmt
+    except Exception as e:
+        log.warning(f"Could not fetch income statement: {e}")
+        return None, None, "UNVERIFIED", {}
+
+    if inc is None or inc.empty:
+        return None, None, "UNVERIFIED", {}
+
+    adj_eps_quarters = []
+    eps_details = []
+    exceptional_found = False
+    minority_found = False
+
+    # Take up to 4 most recent quarters (columns are dates, newest first)
+    quarters = inc.columns[:4]
+
+    for q_date in quarters:
+        col = inc[q_date]
+
+        # --- Net Income (reported) ---
+        net_income = None
+        for label in ["Net Income", "Net Income Common Stockholders"]:
+            if label in col.index and not pd.isna(col.get(label)):
+                net_income = float(col[label])
+                break
+
+        if net_income is None:
+            adj_eps_quarters.append(None)
+            eps_details.append({"date": str(q_date)[:10], "status": "missing_net_income"})
+            continue
+
+        adj_net_income = net_income
+
+        # --- Exceptional / Unusual Items ---
+        exceptional = None
+        for label in ["Total Unusual Items", "Unusual Items", "Exceptional Items",
+                      "Other Non Operating Income Expenses"]:
+            if label in col.index and not pd.isna(col.get(label)):
+                exceptional = float(col[label])
+                exceptional_found = True
+                break
+
+        if exceptional is not None:
+            # Remove exceptional item and add back its tax shield
+            tax_effect = exceptional * INDIA_TAX_RATE
+            adj_net_income = adj_net_income - exceptional + tax_effect
+
+        # --- Minority Interest ---
+        minority = None
+        for label in ["Minority Interest", "Non Controlling Interest"]:
+            if label in col.index and not pd.isna(col.get(label)):
+                minority = float(col[label])
+                minority_found = True
+                break
+
+        if minority is not None:
+            adj_net_income = adj_net_income - abs(minority)
+
+        # --- Adjusted EPS for this quarter ---
+        if shares_outstanding and shares_outstanding > 0:
+            q_adj_eps = adj_net_income / shares_outstanding
+        else:
+            q_adj_eps = None
+
+        adj_eps_quarters.append(safe_round(q_adj_eps))
+        eps_details.append({
+            "date":           str(q_date)[:10],
+            "reported_ni_cr": crores(net_income),
+            "exceptional_cr": crores(exceptional),
+            "minority_cr":    crores(minority),
+            "adj_ni_cr":      crores(adj_net_income),
+            "adj_eps":        safe_round(q_adj_eps),
+        })
+
+    # TTM = sum of last 4 valid quarters
+    valid = [x for x in adj_eps_quarters if x is not None]
+    ttm_adj_eps = safe_round(sum(valid)) if len(valid) == 4 else (
+        safe_round(sum(valid) * 4 / len(valid)) if valid else None
+    )
+
+    # Quality flag
+    if exceptional_found and minority_found:
+        quality = "CLEAN"
+    elif exceptional_found or minority_found:
+        quality = "PARTIAL"
+    else:
+        quality = "UNVERIFIED"
+
+    return adj_eps_quarters, ttm_adj_eps, quality, eps_details
+
+
+# ─────────────────────────────────────────────
+# FORWARD EPS — OPTION C
+# Our derived estimate + Yahoo analyst consensus
+# ─────────────────────────────────────────────
+
+def compute_forward_eps(ttm_adj_eps, eps_growth_rate, yahoo_forward_eps):
+    """
+    Returns our derived forward EPS and a flag if it diverges >20% from analyst consensus.
+    """
+    if ttm_adj_eps is None or eps_growth_rate is None:
+        derived = None
+    else:
+        derived = safe_round(ttm_adj_eps * (1 + eps_growth_rate))
+
+    divergence_flag = False
+    divergence_pct = None
+
+    if derived and yahoo_forward_eps:
+        try:
+            divergence_pct = safe_round(
+                abs(derived - yahoo_forward_eps) / abs(yahoo_forward_eps) * 100
+            )
+            if divergence_pct > 20:
+                divergence_flag = True
+        except (TypeError, ZeroDivisionError):
+            pass
+
+    return derived, yahoo_forward_eps, divergence_flag, divergence_pct
+
+
+# ─────────────────────────────────────────────
+# MARGIN TREND
+# ─────────────────────────────────────────────
+
+def compute_margin_trend(ticker_obj):
+    """
+    Returns operating margin for last 4 quarters and direction:
+    'expanding', 'flat', or 'contracting'
+    """
+    try:
+        inc = ticker_obj.quarterly_income_stmt
+        if inc is None or inc.empty:
+            return None, "unknown"
+
+        margins = []
+        for q_date in inc.columns[:4]:
+            col = inc[q_date]
+            op_income = None
+            revenue = None
+            for l in ["Operating Income", "EBIT"]:
+                if l in col.index and not pd.isna(col.get(l)):
+                    op_income = float(col[l])
+                    break
+            for l in ["Total Revenue", "Revenue"]:
+                if l in col.index and not pd.isna(col.get(l)):
+                    revenue = float(col[l])
+                    break
+            if op_income and revenue and revenue != 0:
+                margins.append(round(op_income / revenue * 100, 2))
+            else:
+                margins.append(None)
+
+        valid = [m for m in margins if m is not None]
+        if len(valid) < 2:
+            return margins, "unknown"
+
+        # Compare newest vs oldest available
+        if valid[0] > valid[-1] + 0.5:
+            trend = "expanding"
+        elif valid[0] < valid[-1] - 0.5:
+            trend = "contracting"
+        else:
+            trend = "flat"
+
+        return margins, trend
+
+    except Exception as e:
+        log.warning(f"Margin trend error: {e}")
+        return None, "unknown"
+
+
+# ─────────────────────────────────────────────
+# MOMENTUM vs NIFTY 50
+# ─────────────────────────────────────────────
+
+def get_close_series(hist, symbol=None):
+    """
+    Safely extract a clean 1-D Close price Series from a yfinance DataFrame.
+    yfinance 1.3+ returns multi-level columns when group_by='ticker' (default).
+    This handles both single and multi-level column cases.
+    """
+    if hist.empty:
+        return None
+    cols = hist.columns
+    # Multi-level columns: (field, ticker)
+    if isinstance(cols, pd.MultiIndex):
+        # Try ("Close", symbol) first, then just grab first "Close" level
+        if symbol and ("Close", symbol) in cols:
+            s = hist[("Close", symbol)]
+        elif "Close" in cols.get_level_values(0):
+            s = hist["Close"].iloc[:, 0]
+        else:
+            return None
+    else:
+        # Flat columns — standard case
+        if "Close" in cols:
+            s = hist["Close"]
+        else:
+            return None
+    return s.dropna()
+
+
+def compute_momentum(symbol, index_history):
+    """
+    Returns 1m, 3m, 6m returns for the stock relative to Nifty 50.
+    """
+    try:
+        end = datetime.now()
+        start = end - timedelta(days=200)  # enough for 6m
+
+        hist = yf.download(symbol, start=start, end=end,
+                           progress=False, auto_adjust=True)
+
+        close = get_close_series(hist, symbol)
+        if close is None or len(close) < 5:
+            return None, None, None, None, None, None
+
+        price_now = float(close.iloc[-1])
+        price_1m  = float(close.iloc[-22])  if len(close) >= 22  else None
+        price_3m  = float(close.iloc[-66])  if len(close) >= 66  else None
+        price_6m  = float(close.iloc[-132]) if len(close) >= 132 else None
+
+        def ret(p_old):
+            if p_old is None or p_old == 0:
+                return None
+            return safe_round((price_now - p_old) / p_old * 100)
+
+        stock_1m = ret(price_1m)
+        stock_3m = ret(price_3m)
+        stock_6m = ret(price_6m)
+
+        # Index returns for same periods
+        idx_1m = idx_3m = idx_6m = None
+        idx_close = get_close_series(index_history)
+        if idx_close is not None and len(idx_close) > 0:
+            idx_now = float(idx_close.iloc[-1])
+            if len(idx_close) >= 22:
+                idx_1m = safe_round((idx_now - float(idx_close.iloc[-22])) / float(idx_close.iloc[-22]) * 100)
+            if len(idx_close) >= 66:
+                idx_3m = safe_round((idx_now - float(idx_close.iloc[-66])) / float(idx_close.iloc[-66]) * 100)
+            if len(idx_close) >= 132:
+                idx_6m = safe_round((idx_now - float(idx_close.iloc[-132])) / float(idx_close.iloc[-132]) * 100)
+
+        rel_1m = safe_round(stock_1m - idx_1m) if (stock_1m is not None and idx_1m is not None) else None
+        rel_3m = safe_round(stock_3m - idx_3m) if (stock_3m is not None and idx_3m is not None) else None
+        rel_6m = safe_round(stock_6m - idx_6m) if (stock_6m is not None and idx_6m is not None) else None
+
+        return stock_1m, stock_3m, stock_6m, rel_1m, rel_3m, rel_6m
+
+    except Exception as e:
+        log.warning(f"Momentum error for {symbol}: {e}")
+        return None, None, None, None, None, None
+
+
+# ─────────────────────────────────────────────
+# SCORING ENGINE
+# ─────────────────────────────────────────────
+
+def score_eps_growth(eps_growth_pct, is_banking=False):
+    if eps_growth_pct is None:
+        return 0, "N/A"
+    g = eps_growth_pct
+    if g >= 30:   return 15, f"{g:.1f}% → Excellent"
+    if g >= 20:   return 12, f"{g:.1f}% → Strong"
+    if g >= 10:   return  9, f"{g:.1f}% → Moderate"
+    if g >=  0:   return  5, f"{g:.1f}% → Weak"
+    return 0, f"{g:.1f}% → Negative"
+
+
+def score_margin_trend(trend):
+    if trend == "expanding":   return 10, "Expanding ↑"
+    if trend == "flat":        return  5, "Flat →"
+    if trend == "contracting": return  0, "Contracting ↓"
+    return 0, "Unknown"
+
+
+def score_roe(roe_pct):
+    if roe_pct is None:  return 0, "N/A"
+    if roe_pct >= 25:    return 10, f"{roe_pct:.1f}% → Excellent"
+    if roe_pct >= 15:    return  7, f"{roe_pct:.1f}% → Good"
+    if roe_pct >= 10:    return  4, f"{roe_pct:.1f}% → Moderate"
+    return 0, f"{roe_pct:.1f}% → Weak"
+
+
+def score_debt_equity(de_ratio, is_banking=False):
+    if is_banking:
+        return 5, "Banking sector — D/E not scored (structural leverage)"
+    if de_ratio is None:  return 0, "N/A"
+    if de_ratio <= 0.5:   return 10, f"{de_ratio:.2f} → Very Low"
+    if de_ratio <= 1.0:   return  7, f"{de_ratio:.2f} → Low"
+    if de_ratio <= 2.0:   return  4, f"{de_ratio:.2f} → Moderate"
+    return 0, f"{de_ratio:.2f} → High"
+
+
+def score_eps_consistency(adj_eps_quarters):
+    valid = [x for x in (adj_eps_quarters or []) if x is not None]
+    if len(valid) < 3:
+        return 0, "Insufficient data"
+    avg = np.mean(valid)
+    if avg == 0:
+        return 0, "Zero average EPS"
+    cv = np.std(valid) / abs(avg) * 100
+    if cv < 15:   return 5, f"CV {cv:.1f}% → Very Consistent"
+    if cv < 30:   return 3, f"CV {cv:.1f}% → Moderate"
+    return 0, f"CV {cv:.1f}% → Volatile"
+
+
+def score_pe_vs_sector(adj_pe, sector_avg_pe):
+    if adj_pe is None or sector_avg_pe is None or sector_avg_pe == 0:
+        return 0, "N/A"
+    diff_pct = (sector_avg_pe - adj_pe) / sector_avg_pe * 100
+    if diff_pct >= 20:    return 10, f"{diff_pct:.1f}% below sector avg → Very Cheap"
+    if diff_pct >= 10:    return  7, f"{diff_pct:.1f}% below sector avg → Cheap"
+    if diff_pct >= -10:   return  5, f"Near sector avg"
+    if diff_pct >= -20:   return  2, f"{abs(diff_pct):.1f}% above sector avg → Pricey"
+    return 0, f"{abs(diff_pct):.1f}% above sector avg → Expensive"
+
+
+def score_peg(peg):
+    if peg is None:    return 0, "N/A"
+    if peg <= 0:       return 0, f"PEG {peg:.2f} → Negative/Invalid"
+    if peg <= 0.75:    return 10, f"PEG {peg:.2f} → Very Attractive"
+    if peg <= 1.0:     return  8, f"PEG {peg:.2f} → Attractive"
+    if peg <= 1.5:     return  5, f"PEG {peg:.2f} → Fair"
+    if peg <= 2.0:     return  2, f"PEG {peg:.2f} → Stretched"
+    return 0, f"PEG {peg:.2f} → Expensive"
+
+
+def score_momentum_6m(rel_6m):
+    if rel_6m is None:   return 0, "N/A"
+    if rel_6m >= 10:     return 15, f"+{rel_6m:.1f}% vs Nifty → Strong"
+    if rel_6m >=  5:     return 11, f"+{rel_6m:.1f}% vs Nifty → Good"
+    if rel_6m >=  0:     return  7, f"+{rel_6m:.1f}% vs Nifty → Slight"
+    return 0, f"{rel_6m:.1f}% vs Nifty → Underperforming"
+
+
+def score_momentum_3m(rel_3m):
+    if rel_3m is None:   return 0, "N/A"
+    if rel_3m >=  5:     return 10, f"+{rel_3m:.1f}% vs Nifty → Strong"
+    if rel_3m >=  0:     return  6, f"+{rel_3m:.1f}% vs Nifty → Positive"
+    return 0, f"{rel_3m:.1f}% vs Nifty → Underperforming"
+
+
+def score_momentum_1m(rel_1m):
+    if rel_1m is None:   return 0, "N/A"
+    if rel_1m >=  0:     return 5, f"+{rel_1m:.1f}% vs Nifty → Positive"
+    return 0, f"{rel_1m:.1f}% vs Nifty → Underperforming"
+
+
+def compute_total_score(scores):
+    return sum(v["score"] for v in scores.values())
+
+
+# ─────────────────────────────────────────────
+# SECTOR AVERAGE P/E  (computed from fetched data)
+# ─────────────────────────────────────────────
+
+def compute_sector_averages(all_stocks_data):
+    sector_pes = {}
+    for s in all_stocks_data:
+        sector = s.get("sector")
+        pe = s.get("adj_ttm_pe")
+        if sector and pe and pe > 0 and pe < 200:
+            sector_pes.setdefault(sector, []).append(pe)
+
+    return {
+        sector: safe_round(np.mean(pes))
+        for sector, pes in sector_pes.items()
+        if pes
+    }
+
+
+# ─────────────────────────────────────────────
+# FETCH ONE STOCK
+# ─────────────────────────────────────────────
+
+def fetch_stock(symbol, index_history):
+    log.info(f"  Fetching {symbol}...")
+    result = {"symbol": symbol, "fetch_error": None}
+
+    try:
+        t = yf.Ticker(symbol)
+        info = t.info or {}
+
+        # ── Basic info ──
+        result["name"]    = safe_get(info, "longName") or safe_get(info, "shortName") or symbol
+        result["sector"]  = safe_get(info, "sector", "Unknown")
+        result["industry"]= safe_get(info, "industry", "Unknown")
+
+        is_banking = result["sector"] in BANKING_SECTORS
+
+        # ── Price & market data ──
+        result["price"]           = safe_round(safe_get(info, "currentPrice"))
+        result["market_cap_cr"]   = crores(safe_get(info, "marketCap"))
+        result["shares_out"]      = safe_get(info, "sharesOutstanding")
+        result["fifty_two_wk_hi"] = safe_round(safe_get(info, "fiftyTwoWeekHigh"))
+        result["fifty_two_wk_lo"] = safe_round(safe_get(info, "fiftyTwoWeekLow"))
+        result["beta"]            = safe_round(safe_get(info, "beta"))
+
+        # ── Yahoo reported EPS (for reference only — NOT used in scoring) ──
+        result["yahoo_trailing_eps"] = safe_round(safe_get(info, "trailingEps"))
+        result["yahoo_forward_eps"]  = safe_round(safe_get(info, "forwardEps"))
+        result["yahoo_trailing_pe"]  = safe_round(safe_get(info, "trailingPE"))
+        result["yahoo_forward_pe"]   = safe_round(safe_get(info, "forwardPE"))
+        result["analyst_count"]      = safe_get(info, "numberOfAnalystOpinions", 0)
+        result["analyst_rec"]        = safe_get(info, "recommendationKey", "N/A")
+
+        # ── Fundamentals from Yahoo info ──
+        result["roe_pct"]            = pct(safe_get(info, "returnOnEquity"))
+        result["debt_to_equity"]     = safe_round(safe_get(info, "debtToEquity"))
+        result["operating_margin_pct"] = pct(safe_get(info, "operatingMargins"))
+        result["profit_margin_pct"]  = pct(safe_get(info, "profitMargins"))
+        result["revenue_growth_pct"] = pct(safe_get(info, "revenueGrowth"))
+        result["earnings_growth_pct"]= pct(safe_get(info, "earningsGrowth"))
+        result["free_cashflow_cr"]   = crores(safe_get(info, "freeCashflow"))
+        result["is_banking"]         = is_banking
+
+        # ── ADJUSTED EPS (our computation) ──
+        adj_quarters, ttm_adj_eps, eps_quality, eps_details = compute_adjusted_eps(
+            t, result["shares_out"]
+        )
+        result["adj_eps_quarters"] = adj_quarters    # [Q1, Q2, Q3, Q4] newest first
+        result["ttm_adj_eps"]      = ttm_adj_eps
+        result["eps_quality"]      = eps_quality
+        result["eps_details"]      = eps_details
+
+        # ── Adjusted P/E ──
+        price = result["price"]
+        result["adj_ttm_pe"] = safe_round(price / ttm_adj_eps) if (
+            price and ttm_adj_eps and ttm_adj_eps > 0
+        ) else None
+
+        # ── EPS Growth (from adjusted quarters) ──
+        # Compare newest quarter vs same quarter one year ago (if available)
+        eps_growth_rate = None
+        if adj_quarters and len(adj_quarters) >= 4:
+            newest = adj_quarters[0]
+            oldest = adj_quarters[3]
+            if newest and oldest and oldest != 0:
+                eps_growth_rate = (newest - oldest) / abs(oldest)
+        # Fallback to Yahoo's earnings growth
+        if eps_growth_rate is None and result["earnings_growth_pct"] is not None:
+            eps_growth_rate = result["earnings_growth_pct"] / 100
+        result["eps_growth_rate"] = eps_growth_rate
+        result["eps_growth_pct"]  = safe_round(eps_growth_rate * 100) if eps_growth_rate else None
+
+        # ── PEG ──
+        peg = None
+        if result["adj_ttm_pe"] and eps_growth_rate and eps_growth_rate > 0:
+            peg = safe_round(result["adj_ttm_pe"] / (eps_growth_rate * 100))
+        result["peg"] = peg
+
+        # ── Forward EPS — Option C (our derived + analyst consensus) ──
+        derived_fwd, analyst_fwd, div_flag, div_pct = compute_forward_eps(
+            ttm_adj_eps, eps_growth_rate, result["yahoo_forward_eps"]
+        )
+        result["derived_forward_eps"]     = derived_fwd
+        result["analyst_forward_eps"]     = analyst_fwd
+        result["forward_eps_diverged"]    = div_flag
+        result["forward_eps_diverge_pct"] = div_pct
+        result["derived_forward_pe"] = safe_round(price / derived_fwd) if (
+            price and derived_fwd and derived_fwd > 0
+        ) else None
+        result["analyst_forward_pe"] = safe_round(price / analyst_fwd) if (
+            price and analyst_fwd and analyst_fwd > 0
+        ) else None
+
+        # ── Margin trend ──
+        margin_history, margin_trend = compute_margin_trend(t)
+        result["margin_history"] = margin_history
+        result["margin_trend"]   = margin_trend
+
+        # ── Momentum ──
+        s1m, s3m, s6m, r1m, r3m, r6m = compute_momentum(symbol, index_history)
+        result["stock_return_1m"]  = s1m
+        result["stock_return_3m"]  = s3m
+        result["stock_return_6m"]  = s6m
+        result["rel_return_1m"]    = r1m
+        result["rel_return_3m"]    = r3m
+        result["rel_return_6m"]    = r6m
+
+        # ── Sector P/E placeholder (filled after all stocks fetched) ──
+        result["sector_avg_pe"] = None  # filled in second pass
+
+        result["fetched_at"] = datetime.now().isoformat()
+
+    except Exception as e:
+        log.error(f"  ERROR fetching {symbol}: {e}")
+        result["fetch_error"] = str(e)
+
+    return result
+
+
+# ─────────────────────────────────────────────
+# APPLY SCORES
+# ─────────────────────────────────────────────
+
+def apply_scores(stock, sector_avg_pe):
+    is_banking = stock.get("is_banking", False)
+    scores = {}
+
+    s, r = score_eps_growth(stock.get("eps_growth_pct"), is_banking)
+    scores["eps_growth"] = {"score": s, "max": 15, "reason": r, "block": "Fundamental"}
+
+    s, r = score_margin_trend(stock.get("margin_trend", "unknown"))
+    scores["margin_trend"] = {"score": s, "max": 10, "reason": r, "block": "Fundamental"}
+
+    s, r = score_roe(stock.get("roe_pct"))
+    scores["roe"] = {"score": s, "max": 10, "reason": r, "block": "Fundamental"}
+
+    s, r = score_debt_equity(stock.get("debt_to_equity"), is_banking)
+    scores["debt_to_equity"] = {"score": s, "max": 10, "reason": r, "block": "Fundamental"}
+
+    s, r = score_eps_consistency(stock.get("adj_eps_quarters"))
+    scores["eps_consistency"] = {"score": s, "max": 5, "reason": r, "block": "Fundamental"}
+
+    s, r = score_pe_vs_sector(stock.get("adj_ttm_pe"), sector_avg_pe)
+    scores["pe_vs_sector"] = {"score": s, "max": 10, "reason": r, "block": "Valuation"}
+
+    s, r = score_peg(stock.get("peg"))
+    scores["peg_ratio"] = {"score": s, "max": 10, "reason": r, "block": "Valuation"}
+
+    s, r = score_momentum_6m(stock.get("rel_return_6m"))
+    scores["momentum_6m"] = {"score": s, "max": 15, "reason": r, "block": "Momentum"}
+
+    s, r = score_momentum_3m(stock.get("rel_return_3m"))
+    scores["momentum_3m"] = {"score": s, "max": 10, "reason": r, "block": "Momentum"}
+
+    s, r = score_momentum_1m(stock.get("rel_return_1m"))
+    scores["momentum_1m"] = {"score": s, "max": 5, "reason": r, "block": "Momentum"}
+
+    total = compute_total_score(scores)
+    fundamental_total = sum(v["score"] for v in scores.values() if v["block"] == "Fundamental")
+    valuation_total   = sum(v["score"] for v in scores.values() if v["block"] == "Valuation")
+    momentum_total    = sum(v["score"] for v in scores.values() if v["block"] == "Momentum")
+
+    stock["scores"]             = scores
+    stock["total_score"]        = total
+    stock["fundamental_score"]  = fundamental_total
+    stock["valuation_score"]    = valuation_total
+    stock["momentum_score"]     = momentum_total
+    stock["sector_avg_pe"]      = sector_avg_pe
+    stock["signal"] = "BUY" if total >= 50 else "HOLD" if total >= 35 else "AVOID"
+
+    return stock
+
+
+# ─────────────────────────────────────────────
+# NIFTY 50 INDEX DATA
+# ─────────────────────────────────────────────
+
+def fetch_index_data():
+    log.info("Fetching Nifty 50 index history...")
+    end = datetime.now()
+    start = end - timedelta(days=200)
+    try:
+        hist = yf.download("^NSEI", start=start, end=end,
+                           progress=False, auto_adjust=True)
+        close = get_close_series(hist, "^NSEI")
+        index_price = float(close.iloc[-1]) if close is not None and len(close) > 0 else None
+        return hist, index_price
+    except Exception as e:
+        log.error(f"Index fetch error: {e}")
+        return pd.DataFrame(), None
+
+
+# ─────────────────────────────────────────────
+# MAIN
+# ─────────────────────────────────────────────
+
+def main():
+    log.info("=" * 60)
+    log.info("Nifty 50 Dashboard — Data Fetch Starting")
+    log.info("=" * 60)
+
+    if is_market_holiday():
+        log.info("Market closed today. Writing holiday status.")
+        output = {
+            "status":       "market_closed",
+            "generated_at": datetime.now().isoformat(),
+            "stocks":       [],
+            "index":        {},
+            "scoring_model": SCORING_MODEL,
+        }
+        with open("nifty_data.json", "w") as f:
+            json.dump(output, f, indent=2, default=str)
+        return
+
+    # ── Step 1: Fetch Nifty 50 index ──
+    index_history, index_price = fetch_index_data()
+
+    # ── Step 2: Fetch all 50 stocks ──
+    all_stocks = []
+    for i, symbol in enumerate(NIFTY50):
+        stock_data = fetch_stock(symbol, index_history)
+        all_stocks.append(stock_data)
+        time.sleep(2)  # Respectful delay — avoids rate limiting
+        if (i + 1) % 10 == 0:
+            log.info(f"  Progress: {i+1}/50 stocks fetched")
+
+    # ── Step 3: Compute sector average P/Es ──
+    log.info("Computing sector averages...")
+    sector_avgs = compute_sector_averages(all_stocks)
+    log.info(f"  Sector avg P/Es: {sector_avgs}")
+
+    # ── Step 4: Apply scores ──
+    log.info("Applying scoring model...")
+    scored_stocks = []
+    for stock in all_stocks:
+        sector = stock.get("sector", "Unknown")
+        sector_pe = sector_avgs.get(sector)
+        scored = apply_scores(stock, sector_pe)
+        scored_stocks.append(scored)
+
+    # ── Step 5: Rank by total score ──
+    scored_stocks.sort(key=lambda x: x.get("total_score", 0), reverse=True)
+    for rank, stock in enumerate(scored_stocks, 1):
+        stock["rank"] = rank
+
+    # ── Step 6: Summary stats ──
+    valid_scores = [s["total_score"] for s in scored_stocks if "total_score" in s]
+    top25 = scored_stocks[:25]
+    bot25 = scored_stocks[25:]
+
+    summary = {
+        "total_stocks":        len(scored_stocks),
+        "avg_score":           safe_round(np.mean(valid_scores)) if valid_scores else None,
+        "top25_avg_score":     safe_round(np.mean([s["total_score"] for s in top25])) if top25 else None,
+        "bot25_avg_score":     safe_round(np.mean([s["total_score"] for s in bot25])) if bot25 else None,
+        "clean_eps_count":     sum(1 for s in scored_stocks if s.get("eps_quality") == "CLEAN"),
+        "partial_eps_count":   sum(1 for s in scored_stocks if s.get("eps_quality") == "PARTIAL"),
+        "unverified_eps_count":sum(1 for s in scored_stocks if s.get("eps_quality") == "UNVERIFIED"),
+        "sector_avg_pes":      sector_avgs,
+        "buy_count":           sum(1 for s in scored_stocks if s.get("signal") == "BUY"),
+        "hold_count":          sum(1 for s in scored_stocks if s.get("signal") == "HOLD"),
+        "avoid_count":         sum(1 for s in scored_stocks if s.get("signal") == "AVOID"),
+    }
+
+    # ── Step 7: Heartbeat ──
+    with open("last_successful_run.txt", "w") as f:
+        f.write(datetime.now().isoformat())
+
+    # ── Step 8: Write output JSON ──
+    output = {
+        "status":         "ok",
+        "generated_at":   datetime.now().isoformat(),
+        "index_price":    safe_round(index_price),
+        "stocks":         scored_stocks,
+        "summary":        summary,
+        "scoring_model":  SCORING_MODEL,
+    }
+
+    with open("nifty_data.json", "w") as f:
+        json.dump(output, f, indent=2, default=str)
+
+    log.info("=" * 60)
+    log.info(f"Done. {len(scored_stocks)} stocks processed.")
+    log.info(f"BUY: {summary['buy_count']} | HOLD: {summary['hold_count']} | AVOID: {summary['avoid_count']}")
+    log.info(f"EPS Quality — CLEAN: {summary['clean_eps_count']} | PARTIAL: {summary['partial_eps_count']} | UNVERIFIED: {summary['unverified_eps_count']}")
+    log.info("Output saved to nifty_data.json")
+    log.info("=" * 60)
+
+
+if __name__ == "__main__":
+    main()
