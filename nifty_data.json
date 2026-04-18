@@ -1,6 +1,6 @@
 {
   "status": "ok",
-  "generated_at": "2026-04-18T15:21:06.278469",
+  "generated_at": "2026-04-18T16:11:54.106425",
   "index_price": 24353.55,
   "stocks": [
     {
@@ -95,7 +95,7 @@
       "rel_return_3m": 6.97,
       "rel_return_6m": 14.54,
       "sector_avg_pe": 46.32,
-      "fetched_at": "2026-04-18T15:20:21.533596",
+      "fetched_at": "2026-04-18T16:11:06.312181",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -257,7 +257,7 @@
       "rel_return_3m": 24.61,
       "rel_return_6m": 24.4,
       "sector_avg_pe": 39.48,
-      "fetched_at": "2026-04-18T15:20:18.543366",
+      "fetched_at": "2026-04-18T16:11:03.232427",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -419,7 +419,7 @@
       "rel_return_3m": 14.22,
       "rel_return_6m": 12.81,
       "sector_avg_pe": 39.19,
-      "fetched_at": "2026-04-18T15:19:31.931404",
+      "fetched_at": "2026-04-18T16:10:13.010673",
       "scores": {
         "eps_growth": {
           "score": 12,
@@ -581,7 +581,7 @@
       "rel_return_3m": 14.14,
       "rel_return_6m": 8.71,
       "sector_avg_pe": 39.48,
-      "fetched_at": "2026-04-18T15:19:44.325504",
+      "fetched_at": "2026-04-18T16:10:27.069711",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -743,7 +743,7 @@
       "rel_return_3m": 30.89,
       "rel_return_6m": 14.84,
       "sector_avg_pe": 18.17,
-      "fetched_at": "2026-04-18T15:19:56.928644",
+      "fetched_at": "2026-04-18T16:10:39.860152",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -905,7 +905,7 @@
       "rel_return_3m": 2.63,
       "rel_return_6m": 10.98,
       "sector_avg_pe": 19.88,
-      "fetched_at": "2026-04-18T15:20:09.287842",
+      "fetched_at": "2026-04-18T16:10:53.787459",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -1067,7 +1067,7 @@
       "rel_return_3m": 13.36,
       "rel_return_6m": 33.0,
       "sector_avg_pe": 46.32,
-      "fetched_at": "2026-04-18T15:19:15.312873",
+      "fetched_at": "2026-04-18T16:09:54.590397",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -1229,7 +1229,7 @@
       "rel_return_3m": 18.65,
       "rel_return_6m": 14.56,
       "sector_avg_pe": 39.19,
-      "fetched_at": "2026-04-18T15:20:51.995515",
+      "fetched_at": "2026-04-18T16:11:39.441140",
       "scores": {
         "eps_growth": {
           "score": 12,
@@ -1391,7 +1391,7 @@
       "rel_return_3m": 12.46,
       "rel_return_6m": 17.02,
       "sector_avg_pe": 27.38,
-      "fetched_at": "2026-04-18T15:19:00.469928",
+      "fetched_at": "2026-04-18T16:09:44.122868",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -1553,7 +1553,7 @@
       "rel_return_3m": 11.28,
       "rel_return_6m": 63.49,
       "sector_avg_pe": 27.38,
-      "fetched_at": "2026-04-18T15:20:55.192501",
+      "fetched_at": "2026-04-18T16:11:43.066388",
       "scores": {
         "eps_growth": {
           "score": 12,
@@ -1711,7 +1711,7 @@
       "rel_return_3m": 15.08,
       "rel_return_6m": 26.49,
       "sector_avg_pe": 27.38,
-      "fetched_at": "2026-04-18T15:18:44.306675",
+      "fetched_at": "2026-04-18T16:09:26.663665",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -1873,7 +1873,7 @@
       "rel_return_3m": 32.47,
       "rel_return_6m": 24.18,
       "sector_avg_pe": 25.0,
-      "fetched_at": "2026-04-18T15:19:50.835599",
+      "fetched_at": "2026-04-18T16:10:33.764038",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -2035,7 +2035,7 @@
       "rel_return_3m": -4.73,
       "rel_return_6m": 6.61,
       "sector_avg_pe": 39.48,
-      "fetched_at": "2026-04-18T15:19:25.739419",
+      "fetched_at": "2026-04-18T16:10:05.360554",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -2197,7 +2197,7 @@
       "rel_return_3m": 5.36,
       "rel_return_6m": 0.83,
       "sector_avg_pe": 39.48,
-      "fetched_at": "2026-04-18T15:19:34.928318",
+      "fetched_at": "2026-04-18T16:10:16.687506",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -2359,7 +2359,7 @@
       "rel_return_3m": 4.28,
       "rel_return_6m": -0.6,
       "sector_avg_pe": 39.48,
-      "fetched_at": "2026-04-18T15:20:24.424454",
+      "fetched_at": "2026-04-18T16:11:10.559821",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -2521,7 +2521,7 @@
       "rel_return_3m": 11.52,
       "rel_return_6m": 5.43,
       "sector_avg_pe": 42.37,
-      "fetched_at": "2026-04-18T15:20:45.644830",
+      "fetched_at": "2026-04-18T16:11:33.313527",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -2683,7 +2683,7 @@
       "rel_return_3m": 9.78,
       "rel_return_6m": -12.76,
       "sector_avg_pe": 46.32,
-      "fetched_at": "2026-04-18T15:20:49.009745",
+      "fetched_at": "2026-04-18T16:11:36.335654",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -2845,7 +2845,7 @@
       "rel_return_3m": -11.12,
       "rel_return_6m": -7.15,
       "sector_avg_pe": 19.88,
-      "fetched_at": "2026-04-18T15:18:27.661412",
+      "fetched_at": "2026-04-18T16:09:07.969952",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -3007,7 +3007,7 @@
       "rel_return_3m": 21.99,
       "rel_return_6m": 18.88,
       "sector_avg_pe": 18.17,
-      "fetched_at": "2026-04-18T15:19:53.891697",
+      "fetched_at": "2026-04-18T16:10:36.844890",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -3169,7 +3169,7 @@
       "rel_return_3m": -2.65,
       "rel_return_6m": -2.15,
       "sector_avg_pe": 25.0,
-      "fetched_at": "2026-04-18T15:20:58.236314",
+      "fetched_at": "2026-04-18T16:11:46.143458",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -3331,7 +3331,7 @@
       "rel_return_3m": 8.52,
       "rel_return_6m": 11.66,
       "sector_avg_pe": 39.19,
-      "fetched_at": "2026-04-18T15:18:53.528012",
+      "fetched_at": "2026-04-18T16:09:37.047160",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -3493,7 +3493,7 @@
       "rel_return_3m": 5.74,
       "rel_return_6m": 12.42,
       "sector_avg_pe": 54.3,
-      "fetched_at": "2026-04-18T15:19:41.371761",
+      "fetched_at": "2026-04-18T16:10:23.870028",
       "scores": {
         "eps_growth": {
           "score": 12,
@@ -3655,7 +3655,7 @@
       "rel_return_3m": 0.69,
       "rel_return_6m": 0.59,
       "sector_avg_pe": 27.38,
-      "fetched_at": "2026-04-18T15:18:37.390801",
+      "fetched_at": "2026-04-18T16:09:18.812427",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -3817,7 +3817,7 @@
       "rel_return_3m": 21.78,
       "rel_return_6m": 35.09,
       "sector_avg_pe": 39.48,
-      "fetched_at": "2026-04-18T15:20:15.537082",
+      "fetched_at": "2026-04-18T16:11:00.122365",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -3979,7 +3979,7 @@
       "rel_return_3m": 1.21,
       "rel_return_6m": 8.13,
       "sector_avg_pe": 42.37,
-      "fetched_at": "2026-04-18T15:20:33.470172",
+      "fetched_at": "2026-04-18T16:11:20.271900",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -4141,7 +4141,7 @@
       "rel_return_3m": 2.62,
       "rel_return_6m": 5.32,
       "sector_avg_pe": 42.37,
-      "fetched_at": "2026-04-18T15:19:12.110598",
+      "fetched_at": "2026-04-18T16:09:51.120799",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -4303,7 +4303,7 @@
       "rel_return_3m": -7.23,
       "rel_return_6m": -5.62,
       "sector_avg_pe": 46.32,
-      "fetched_at": "2026-04-18T15:20:02.956732",
+      "fetched_at": "2026-04-18T16:10:47.058701",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -4465,7 +4465,7 @@
       "rel_return_3m": -2.01,
       "rel_return_6m": -1.99,
       "sector_avg_pe": 46.32,
-      "fetched_at": "2026-04-18T15:20:42.664487",
+      "fetched_at": "2026-04-18T16:11:30.151718",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -4627,7 +4627,7 @@
       "rel_return_3m": 2.05,
       "rel_return_6m": 5.52,
       "sector_avg_pe": 46.32,
-      "fetched_at": "2026-04-18T15:20:39.573410",
+      "fetched_at": "2026-04-18T16:11:26.750273",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -4789,7 +4789,7 @@
       "rel_return_3m": 0.73,
       "rel_return_6m": -9.32,
       "sector_avg_pe": 54.3,
-      "fetched_at": "2026-04-18T15:18:47.359779",
+      "fetched_at": "2026-04-18T16:09:30.094588",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -4947,7 +4947,7 @@
       "rel_return_3m": 7.03,
       "rel_return_6m": -12.41,
       "sector_avg_pe": 25.0,
-      "fetched_at": "2026-04-18T15:19:28.792459",
+      "fetched_at": "2026-04-18T16:10:09.064021",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -5109,7 +5109,7 @@
       "rel_return_3m": 9.23,
       "rel_return_6m": 0.95,
       "sector_avg_pe": 42.37,
-      "fetched_at": "2026-04-18T15:20:30.583530",
+      "fetched_at": "2026-04-18T16:11:17.168895",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -5271,7 +5271,7 @@
       "rel_return_3m": 1.59,
       "rel_return_6m": 12.5,
       "sector_avg_pe": 27.38,
-      "fetched_at": "2026-04-18T15:21:04.242257",
+      "fetched_at": "2026-04-18T16:11:52.097541",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -5429,7 +5429,7 @@
       "rel_return_3m": -4.94,
       "rel_return_6m": 7.02,
       "sector_avg_pe": 19.88,
-      "fetched_at": "2026-04-18T15:19:22.641075",
+      "fetched_at": "2026-04-18T16:10:01.731793",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -5591,7 +5591,7 @@
       "rel_return_3m": 11.38,
       "rel_return_6m": 21.05,
       "sector_avg_pe": 25.0,
-      "fetched_at": "2026-04-18T15:19:59.948546",
+      "fetched_at": "2026-04-18T16:10:43.443921",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -5753,7 +5753,7 @@
       "rel_return_3m": -1.62,
       "rel_return_6m": -6.16,
       "sector_avg_pe": 27.38,
-      "fetched_at": "2026-04-18T15:20:06.043989",
+      "fetched_at": "2026-04-18T16:10:50.429869",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -5915,7 +5915,7 @@
       "rel_return_3m": 1.9,
       "rel_return_6m": -2.35,
       "sector_avg_pe": 54.3,
-      "fetched_at": "2026-04-18T15:20:36.598334",
+      "fetched_at": "2026-04-18T16:11:23.595467",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -6077,7 +6077,7 @@
       "rel_return_3m": -0.19,
       "rel_return_6m": -0.2,
       "sector_avg_pe": 54.3,
-      "fetched_at": "2026-04-18T15:21:01.217507",
+      "fetched_at": "2026-04-18T16:11:49.088831",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -6239,7 +6239,7 @@
       "rel_return_3m": -12.43,
       "rel_return_6m": -12.95,
       "sector_avg_pe": 46.32,
-      "fetched_at": "2026-04-18T15:19:06.269147",
+      "fetched_at": "2026-04-18T16:09:47.690230",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -6401,7 +6401,7 @@
       "rel_return_3m": -1.28,
       "rel_return_6m": -20.59,
       "sector_avg_pe": 54.3,
-      "fetched_at": "2026-04-18T15:18:50.396646",
+      "fetched_at": "2026-04-18T16:09:33.482633",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -6563,7 +6563,7 @@
       "rel_return_3m": 3.5,
       "rel_return_6m": 16.19,
       "sector_avg_pe": 27.38,
-      "fetched_at": "2026-04-18T15:20:12.291037",
+      "fetched_at": "2026-04-18T16:10:57.030581",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -6725,7 +6725,7 @@
       "rel_return_3m": -3.78,
       "rel_return_6m": -0.69,
       "sector_avg_pe": 33.98,
-      "fetched_at": "2026-04-18T15:18:34.129458",
+      "fetched_at": "2026-04-18T16:09:15.246628",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -6887,7 +6887,7 @@
       "rel_return_3m": -8.67,
       "rel_return_6m": -15.18,
       "sector_avg_pe": 27.38,
-      "fetched_at": "2026-04-18T15:18:31.047621",
+      "fetched_at": "2026-04-18T16:09:11.880939",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -7049,7 +7049,7 @@
       "rel_return_3m": 0.29,
       "rel_return_6m": -6.29,
       "sector_avg_pe": 27.38,
-      "fetched_at": "2026-04-18T15:19:19.346807",
+      "fetched_at": "2026-04-18T16:09:57.966200",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -7211,7 +7211,7 @@
       "rel_return_3m": -13.22,
       "rel_return_6m": -11.08,
       "sector_avg_pe": 19.88,
-      "fetched_at": "2026-04-18T15:19:38.391633",
+      "fetched_at": "2026-04-18T16:10:20.301136",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -7369,7 +7369,7 @@
       "rel_return_3m": -3.24,
       "rel_return_6m": -6.75,
       "sector_avg_pe": 27.38,
-      "fetched_at": "2026-04-18T15:18:56.593004",
+      "fetched_at": "2026-04-18T16:09:40.549564",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -7531,7 +7531,7 @@
       "rel_return_3m": -8.21,
       "rel_return_6m": -16.3,
       "sector_avg_pe": 42.37,
-      "fetched_at": "2026-04-18T15:20:27.429376",
+      "fetched_at": "2026-04-18T16:11:13.962149",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -7693,7 +7693,7 @@
       "rel_return_3m": -0.34,
       "rel_return_6m": 2.06,
       "sector_avg_pe": 25.0,
-      "fetched_at": "2026-04-18T15:18:24.541288",
+      "fetched_at": "2026-04-18T16:09:04.277334",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -7812,7 +7812,7 @@
       "rel_return_3m": null,
       "rel_return_6m": null,
       "sector_avg_pe": null,
-      "fetched_at": "2026-04-18T15:18:41.160424",
+      "fetched_at": "2026-04-18T16:09:23.711964",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -7931,7 +7931,7 @@
       "rel_return_3m": null,
       "rel_return_6m": null,
       "sector_avg_pe": null,
-      "fetched_at": "2026-04-18T15:19:48.156178",
+      "fetched_at": "2026-04-18T16:10:31.079762",
       "scores": {
         "eps_growth": {
           "score": 0,
