@@ -284,3 +284,8 @@
 2026-04-19 20:30:07,085  INFO  ============================================================
 2026-04-19 20:30:07,085  INFO  Today is a weekend. Skipping update.
 2026-04-19 20:30:07,085  INFO  Market closed today. Writing holiday status.
+2026-04-19 20:35:26,712  INFO  ============================================================
+2026-04-19 20:35:26,713  INFO  Nifty 50 Dashboard — Data Fetch Starting
+2026-04-19 20:35:26,713  INFO  ============================================================
+2026-04-19 20:35:26,713  INFO  Today is a weekend. Skipping update.
+2026-04-19 20:35:26,714  INFO  Market closed today. Writing holiday status.

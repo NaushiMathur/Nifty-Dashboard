@@ -1,0 +1,542 @@
+{
+  "ADANIENT": {
+    "sector": "Energy",
+    "industry": "Thermal Coal",
+    "sharesOutstanding": 1301693464,
+    "trailingPE": 20.040653,
+    "forwardEps": 44.45,
+    "bookValue": 445.61,
+    "longName": "Adani Enterprises Limited"
+  },
+  "ADANIPORTS": {
+    "sector": "Industrials",
+    "industry": "Marine Shipping",
+    "sharesOutstanding": 2303959098,
+    "trailingPE": 27.24974,
+    "forwardEps": 68.59107,
+    "bookValue": 310.464,
+    "longName": "Adani Ports and Special Economic Zone Limited"
+  },
+  "APOLLOHOSP": {
+    "sector": "Healthcare",
+    "industry": "Medical Care Facilities",
+    "sharesOutstanding": 143784657,
+    "trailingPE": 61.3515,
+    "forwardEps": 166.4155,
+    "bookValue": 632.453,
+    "longName": "Apollo Hospitals Enterprise Limited"
+  },
+  "ASIANPAINT": {
+    "sector": "Basic Materials",
+    "industry": "Specialty Chemicals",
+    "sharesOutstanding": 958594309,
+    "trailingPE": 61.354584,
+    "forwardEps": 50.24706,
+    "bookValue": 204.34,
+    "longName": "Asian Paints Limited"
+  },
+  "AXISBANK": {
+    "sector": "Financial Services",
+    "industry": "Banks - Regional",
+    "sharesOutstanding": 3108439823,
+    "trailingPE": 16.129835,
+    "forwardEps": 108.0,
+    "bookValue": 666.704,
+    "longName": "Axis Bank Limited"
+  },
+  "BAJAJ-AUTO": {
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers",
+    "sharesOutstanding": 279246551,
+    "trailingPE": 30.769108,
+    "forwardEps": 396.52,
+    "bookValue": 1223.784,
+    "longName": "Bajaj Auto Limited"
+  },
+  "BAJAJFINSV": {
+    "sector": "Financial Services",
+    "industry": "Financial Conglomerates",
+    "sharesOutstanding": 1597497155,
+    "trailingPE": 30.673895,
+    "forwardEps": 81.19294,
+    "bookValue": 480.6,
+    "longName": "Bajaj Finserv Ltd."
+  },
+  "BAJFINANCE": {
+    "sector": "Financial Services",
+    "industry": "Credit Services",
+    "sharesOutstanding": 6216345518,
+    "trailingPE": 31.351398,
+    "forwardEps": 40.37133,
+    "bookValue": 166.188,
+    "longName": "Bajaj Finance Limited"
+  },
+  "BEL": {
+    "sector": "Industrials",
+    "industry": "Aerospace & Defense",
+    "sharesOutstanding": 7309778829,
+    "trailingPE": 56.848892,
+    "forwardEps": 9.81782,
+    "bookValue": 29.476,
+    "longName": "Bharat Electronics Limited"
+  },
+  "BHARTIARTL": {
+    "sector": "Communication Services",
+    "industry": "Telecom Services",
+    "sharesOutstanding": 6090538098,
+    "trailingPE": 36.492786,
+    "forwardEps": 66.26862,
+    "bookValue": 204.916,
+    "longName": "Bharti Airtel Limited"
+  },
+  "BPCL": {
+    "sector": "Energy",
+    "industry": "Oil & Gas Refining & Marketing",
+    "sharesOutstanding": 4338505488,
+    "trailingPE": 5.4202847,
+    "forwardEps": 42.15474,
+    "bookValue": 219.838,
+    "longName": "Bharat Petroleum Corporation Limited"
+  },
+  "BRITANNIA": {
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods",
+    "sharesOutstanding": 240868296,
+    "trailingPE": 57.143566,
+    "forwardEps": 119.53036,
+    "bookValue": 154.997,
+    "longName": "Britannia Industries Limited"
+  },
+  "CIPLA": {
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic",
+    "sharesOutstanding": 807782631,
+    "trailingPE": 22.074366,
+    "forwardEps": 55.46678,
+    "bookValue": 407.531,
+    "longName": "Cipla Limited"
+  },
+  "COALINDIA": {
+    "sector": "Energy",
+    "industry": "Thermal Coal",
+    "sharesOutstanding": 6162728327,
+    "trailingPE": 9.057597,
+    "forwardEps": 54.02092,
+    "bookValue": 171.077,
+    "longName": "Coal India Limited"
+  },
+  "DIVISLAB": {
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic",
+    "sharesOutstanding": 265468580,
+    "trailingPE": 66.6631,
+    "forwardEps": 116.9374,
+    "bookValue": 580.952,
+    "longName": "Divi's Laboratories Limited"
+  },
+  "DRREDDY": {
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic",
+    "sharesOutstanding": 832594805,
+    "trailingPE": 18.214918,
+    "forwardEps": 55.0652,
+    "bookValue": 447.25,
+    "longName": "Dr. Reddy's Laboratories Limited"
+  },
+  "EICHERMOT": {
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers",
+    "sharesOutstanding": 274314204,
+    "trailingPE": 36.89951,
+    "forwardEps": 230.24077,
+    "bookValue": 805.256,
+    "longName": "Eicher Motors Limited"
+  },
+  "GRASIM": {
+    "sector": "Basic Materials",
+    "industry": "Building Materials",
+    "sharesOutstanding": 678114605,
+    "trailingPE": 40.817703,
+    "forwardEps": 112.66389,
+    "bookValue": 1468.673,
+    "longName": "Grasim Industries Limited"
+  },
+  "HCLTECH": {
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "sharesOutstanding": 2705652444,
+    "trailingPE": 23.753294,
+    "forwardEps": 73.85508,
+    "bookValue": 279.2994,
+    "longName": "HCL Technologies Limited"
+  },
+  "HDFC": {
+    "sector": null,
+    "industry": null,
+    "sharesOutstanding": null,
+    "trailingPE": null,
+    "forwardEps": null,
+    "bookValue": null,
+    "longName": null
+  },
+  "HDFCBANK": {
+    "sector": "Financial Services",
+    "industry": "Banks - Regional",
+    "sharesOutstanding": 15393260762,
+    "trailingPE": 17.858898,
+    "forwardEps": 57.1,
+    "bookValue": 367.242,
+    "longName": "HDFC Bank Limited"
+  },
+  "HDFCLIFE": {
+    "sector": "Financial Services",
+    "industry": "Insurance - Life",
+    "sharesOutstanding": 2157279702,
+    "trailingPE": 69.420044,
+    "forwardEps": 12.324,
+    "bookValue": 81.65,
+    "longName": "HDFC Life Insurance Company Limited"
+  },
+  "HEROMOTOCO": {
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers",
+    "sharesOutstanding": 200089777,
+    "trailingPE": 19.230488,
+    "forwardEps": 290.61227,
+    "bookValue": 1049.694,
+    "longName": "Hero MotoCorp Limited"
+  },
+  "HINDALCO": {
+    "sector": "Basic Materials",
+    "industry": "Aluminum",
+    "sharesOutstanding": 2235875391,
+    "trailingPE": 14.3686905,
+    "forwardEps": 88.0,
+    "bookValue": 607.505,
+    "longName": "Hindalco Industries Limited"
+  },
+  "HINDUNILVR": {
+    "sector": "Consumer Defensive",
+    "industry": "Household & Personal Products",
+    "sharesOutstanding": 2349591262,
+    "trailingPE": 52.087402,
+    "forwardEps": 49.03925,
+    "bookValue": 207.383,
+    "longName": "Hindustan Unilever Limited"
+  },
+  "ICICIBANK": {
+    "sector": "Financial Services",
+    "industry": "Banks - Regional",
+    "sharesOutstanding": 7164199879,
+    "trailingPE": 18.38133,
+    "forwardEps": 90.60521,
+    "bookValue": 487.636,
+    "longName": "ICICI Bank Limited"
+  },
+  "INDIGO": {
+    "sector": "Industrials",
+    "industry": "Airlines",
+    "sharesOutstanding": 386646998,
+    "trailingPE": 55.864143,
+    "forwardEps": 185.12901,
+    "bookValue": 242.434,
+    "longName": "InterGlobe Aviation Limited"
+  },
+  "INDUSINDBK": {
+    "sector": "Financial Services",
+    "industry": "Banks - Regional",
+    "sharesOutstanding": 779106092,
+    "trailingPE": null,
+    "forwardEps": 47.65353,
+    "bookValue": 835.417,
+    "longName": "IndusInd Bank Limited"
+  },
+  "INFY": {
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "sharesOutstanding": 4046638943,
+    "trailingPE": 18.348406,
+    "forwardEps": 77.22873,
+    "bookValue": 213.1117,
+    "longName": "Infosys Limited"
+  },
+  "IOC": {
+    "sector": "Energy",
+    "industry": "Oil & Gas Refining & Marketing",
+    "sharesOutstanding": 14121238383,
+    "trailingPE": 5.617251,
+    "forwardEps": 14.3301,
+    "bookValue": 143.199,
+    "longName": "Indian Oil Corporation Limited"
+  },
+  "ITC": {
+    "sector": "Consumer Defensive",
+    "industry": "Tobacco",
+    "sharesOutstanding": 12529468231,
+    "trailingPE": 18.868387,
+    "forwardEps": 16.73455,
+    "bookValue": 56.707,
+    "longName": "ITC Limited"
+  },
+  "JIOFIN": {
+    "sector": "Financial Services",
+    "industry": "Asset Management",
+    "sharesOutstanding": 6353141623,
+    "trailingPE": 101.18672,
+    "forwardEps": 5.4,
+    "bookValue": 213.244,
+    "longName": "Jio Financial Services Limited"
+  },
+  "JSWSTEEL": {
+    "sector": "Basic Materials",
+    "industry": "Steel",
+    "sharesOutstanding": 2440633358,
+    "trailingPE": 40.81277,
+    "forwardEps": 58.26187,
+    "bookValue": 340.317,
+    "longName": "JSW Steel Limited"
+  },
+  "KOTAKBANK": {
+    "sector": "Financial Services",
+    "industry": "Banks - Regional",
+    "sharesOutstanding": 9946464950,
+    "trailingPE": 20.285564,
+    "forwardEps": 21.11847,
+    "bookValue": 169.003,
+    "longName": "Kotak Mahindra Bank Limited"
+  },
+  "LT": {
+    "sector": "Industrials",
+    "industry": "Engineering & Construction",
+    "sharesOutstanding": 1375632190,
+    "trailingPE": 32.05086,
+    "forwardEps": 154.9414,
+    "bookValue": 736.989,
+    "longName": "Larsen & Toubro Limited"
+  },
+  "LTIM": {
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "sharesOutstanding": 296400587,
+    "trailingPE": 28.09031,
+    "forwardEps": 211.43777,
+    "bookValue": 799.109,
+    "longName": "LTIMindtree Ltd"
+  },
+  "M&M": {
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers",
+    "sharesOutstanding": 1200762264,
+    "trailingPE": 22.883087,
+    "forwardEps": 143.7206,
+    "bookValue": 741.994,
+    "longName": "Mahindra & Mahindra Limited"
+  },
+  "MARUTI": {
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers",
+    "sharesOutstanding": 314402574,
+    "trailingPE": 28.328665,
+    "forwardEps": 555.6033,
+    "bookValue": 3172.502,
+    "longName": "Maruti Suzuki India Limited"
+  },
+  "MAXHEALTH": {
+    "sector": "Healthcare",
+    "industry": "Medical Care Facilities",
+    "sharesOutstanding": 973192502,
+    "trailingPE": 69.44521,
+    "forwardEps": 21.11137,
+    "bookValue": 102.713,
+    "longName": "Max Healthcare Institute Limited"
+  },
+  "NESTLEIND": {
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods",
+    "sharesOutstanding": 1928314320,
+    "trailingPE": 75.75722,
+    "forwardEps": 19.58445,
+    "bookValue": 22.996,
+    "longName": "Nestl\u00e9 India Limited"
+  },
+  "NTPC": {
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric",
+    "sharesOutstanding": 9696666134,
+    "trailingPE": 21.78196,
+    "forwardEps": 26.8942,
+    "bookValue": 198.221,
+    "longName": "NTPC Limited"
+  },
+  "ONGC": {
+    "sector": "Energy",
+    "industry": "Oil & Gas Integrated",
+    "sharesOutstanding": 12580279206,
+    "trailingPE": 9.390082,
+    "forwardEps": 41.3648,
+    "bookValue": 292.589,
+    "longName": "Oil and Natural Gas Corporation Limited"
+  },
+  "POWERGRID": {
+    "sector": "Utilities",
+    "industry": "Utilities - Regulated Electric",
+    "sharesOutstanding": 9300603819,
+    "trailingPE": 20.404106,
+    "forwardEps": 18.50581,
+    "bookValue": 106.531,
+    "longName": "Power Grid Corporation of India Limited"
+  },
+  "RELIANCE": {
+    "sector": "Energy",
+    "industry": "Oil & Gas Refining & Marketing",
+    "sharesOutstanding": 13532472634,
+    "trailingPE": 22.220413,
+    "forwardEps": 65.37173,
+    "bookValue": 648.12,
+    "longName": "Reliance Industries Limited"
+  },
+  "SBILIFE": {
+    "sector": "Financial Services",
+    "industry": "Insurance - Life",
+    "sharesOutstanding": 1003092121,
+    "trailingPE": 79.98783,
+    "forwardEps": 31.54511,
+    "bookValue": 189.622,
+    "longName": "SBI Life Insurance Company Limited"
+  },
+  "SBIN": {
+    "sector": "Financial Services",
+    "industry": "Banks - Regional",
+    "sharesOutstanding": 9230617586,
+    "trailingPE": 11.764866,
+    "forwardEps": 92.05057,
+    "bookValue": 641.361,
+    "longName": "State Bank of India"
+  },
+  "SHREECEM": {
+    "sector": "Basic Materials",
+    "industry": "Building Materials",
+    "sharesOutstanding": 36080748,
+    "trailingPE": 51.02082,
+    "forwardEps": 633.3505,
+    "bookValue": 2553.785,
+    "longName": "Shree Cement Limited"
+  },
+  "SHRIRAMFIN": {
+    "sector": "Financial Services",
+    "industry": "Credit Services",
+    "sharesOutstanding": 2352686426,
+    "trailingPE": 21.323256,
+    "forwardEps": 63.15384,
+    "bookValue": 322.11,
+    "longName": "Shriram Finance Limited"
+  },
+  "SUNPHARMA": {
+    "sector": "Healthcare",
+    "industry": "Drug Manufacturers - Specialty & Generic",
+    "sharesOutstanding": 2399334970,
+    "trailingPE": 36.76761,
+    "forwardEps": 56.64642,
+    "bookValue": 324.462,
+    "longName": "Sun Pharmaceutical Industries Limited"
+  },
+  "TATACONSUM": {
+    "sector": "Consumer Defensive",
+    "industry": "Packaged Foods",
+    "sharesOutstanding": 989561780,
+    "trailingPE": 75.16542,
+    "forwardEps": 20.41538,
+    "bookValue": 205.423,
+    "longName": "Tata Consumer Products Limited"
+  },
+  "TATAMOTORS": {
+    "sector": null,
+    "industry": null,
+    "sharesOutstanding": null,
+    "trailingPE": null,
+    "forwardEps": null,
+    "bookValue": null,
+    "longName": null
+  },
+  "TATASTEEL": {
+    "sector": "Basic Materials",
+    "industry": "Steel",
+    "sharesOutstanding": 12471847611,
+    "trailingPE": 28.82065,
+    "forwardEps": 17.4,
+    "bookValue": 76.221,
+    "longName": "Tata Steel Limited"
+  },
+  "TCS": {
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "sharesOutstanding": 3618087518,
+    "trailingPE": 18.974642,
+    "forwardEps": 165.65608,
+    "bookValue": 313.727,
+    "longName": "Tata Consultancy Services Limited"
+  },
+  "TECHM": {
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "sharesOutstanding": 885605623,
+    "trailingPE": 28.987343,
+    "forwardEps": 76.88881,
+    "bookValue": 310.382,
+    "longName": "Tech Mahindra Limited"
+  },
+  "TITAN": {
+    "sector": "Consumer Cyclical",
+    "industry": "Luxury Goods",
+    "sharesOutstanding": 887045260,
+    "trailingPE": 84.030815,
+    "forwardEps": 70.51454,
+    "bookValue": 144.377,
+    "longName": "Titan Company Limited"
+  },
+  "TRENT": {
+    "sector": "Consumer Cyclical",
+    "industry": "Apparel Retail",
+    "sharesOutstanding": 355487461,
+    "trailingPE": 89.27843,
+    "forwardEps": 59.50211,
+    "bookValue": 171.62,
+    "longName": "Trent Limited"
+  },
+  "ULTRACEMCO": {
+    "sector": "Basic Materials",
+    "industry": "Building Materials",
+    "sharesOutstanding": 294137690,
+    "trailingPE": 45.6627,
+    "forwardEps": 374.5885,
+    "bookValue": 2448.889,
+    "longName": "UltraTech Cement Limited"
+  },
+  "UPL": {
+    "sector": "Basic Materials",
+    "industry": "Agricultural Inputs",
+    "sharesOutstanding": 844169318,
+    "trailingPE": 31.743074,
+    "forwardEps": 42.89989,
+    "bookValue": 389.303,
+    "longName": "UPL Limited"
+  },
+  "WIPRO": {
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "sharesOutstanding": 10476609504,
+    "trailingPE": 16.254576,
+    "forwardEps": 14.42491,
+    "bookValue": 85.612,
+    "longName": "Wipro Limited"
+  },
+  "ZOMATO": {
+    "sector": null,
+    "industry": null,
+    "sharesOutstanding": null,
+    "trailingPE": null,
+    "forwardEps": null,
+    "bookValue": null,
+    "longName": null
+  }
+}
