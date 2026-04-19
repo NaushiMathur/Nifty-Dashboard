@@ -30,24 +30,31 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────
-# NIFTY 50 CONSTITUENTS  (as of April 2026)
-# Update this list if NSE changes the composition
+# NIFTY 50 CONSTITUENTS  (current — post Sep-2025 reconstitution)
+# Last updated: 2026-04-19 based on NSE reconstitutions:
+#   Sep 2025: out: HEROMOTOCO, INDUSINDBK | in: INDIGO, MAXHEALTH
+#   Mar 2025: out: BPCL, BRITANNIA        | in: JIOFIN, ZOMATO
+#   Sep 2024: out: DIVISLAB, LTIM         | in: TRENT, BEL
+# If NSE changes the composition again, update this list AND
+# the `changes` list in build_composition.py, then re-run the backtest.
 # ─────────────────────────────────────────────
 NIFTY50 = [
     "RELIANCE.NS",   "TCS.NS",        "HDFCBANK.NS",   "BHARTIARTL.NS",
-    "ICICIBANK.NS",  "INFOSYS.NS",    "SBIN.NS",        "HINDUNILVR.NS",
-    "ITC.NS",        "LT.NS",         "KOTAKBANK.NS",   "AXISBANK.NS",
-    "MARUTI.NS",     "SUNPHARMA.NS",  "TITAN.NS",       "BAJFINANCE.NS",
-    "HCLTECH.NS",    "ASIANPAINT.NS", "ADANIENT.NS",    "ADANIPORTS.NS",
-    "ULTRACEMCO.NS", "WIPRO.NS",      "NESTLEIND.NS",   "JSWSTEEL.NS",
-    "TATAMOTORS.NS", "ONGC.NS",       "NTPC.NS",        "POWERGRID.NS",
-    "COALINDIA.NS",  "M&M.NS",        "BAJAJFINSV.NS",  "TECHM.NS",
-    "INDUSINDBK.NS", "HINDALCO.NS",   "TATASTEEL.NS",   "BAJAJ-AUTO.NS",
-    "GRASIM.NS",     "CIPLA.NS",      "DRREDDY.NS",     "DIVISLAB.NS",
-    "BRITANNIA.NS",  "EICHERMOT.NS",  "HEROMOTOCO.NS",  "APOLLOHOSP.NS",
-    "TRENT.NS",      "BEL.NS",        "SHRIRAMFIN.NS",  "BPCL.NS",
-    "TATACONSUM.NS", "SBILIFE.NS",
+    "ICICIBANK.NS",  "INFY.NS",       "SBIN.NS",       "HINDUNILVR.NS",
+    "ITC.NS",        "LT.NS",         "KOTAKBANK.NS",  "AXISBANK.NS",
+    "MARUTI.NS",     "SUNPHARMA.NS",  "TITAN.NS",      "BAJFINANCE.NS",
+    "HCLTECH.NS",    "ASIANPAINT.NS", "ADANIENT.NS",   "ADANIPORTS.NS",
+    "ULTRACEMCO.NS", "WIPRO.NS",      "NESTLEIND.NS",  "JSWSTEEL.NS",
+    "TATAMOTORS.NS", "ONGC.NS",       "NTPC.NS",       "POWERGRID.NS",
+    "COALINDIA.NS",  "M&M.NS",        "BAJAJFINSV.NS", "TECHM.NS",
+    "HINDALCO.NS",   "TATASTEEL.NS",  "BAJAJ-AUTO.NS", "GRASIM.NS",
+    "CIPLA.NS",      "DRREDDY.NS",    "EICHERMOT.NS",  "APOLLOHOSP.NS",
+    "TRENT.NS",      "BEL.NS",        "SHRIRAMFIN.NS", "TATACONSUM.NS",
+    "SBILIFE.NS",    "HDFCLIFE.NS",   "JIOFIN.NS",     "ZOMATO.NS",
+    "INDIGO.NS",     "MAXHEALTH.NS",
 ]
+# sanity: 50 tickers
+assert len(NIFTY50) == 50, f"NIFTY50 must have 50 tickers, got {len(NIFTY50)}"
 
 # Banking stocks — high D/E is structural, not a risk signal
 BANKING_SECTORS = {"Financial Services", "Banking"}
@@ -152,107 +159,134 @@ def safe_round(value, decimals=2):
 # ADJUSTED EPS COMPUTATION
 # ─────────────────────────────────────────────
 
+def _clean_one_quarter(col, shares_outstanding):
+    """
+    Extract adjusted EPS for a single quarterly income-statement column.
+    Returns (adj_eps_or_None, detail_dict, exc_found_bool, min_found_bool).
+    """
+    # --- Net Income (reported) ---
+    net_income = None
+    for label in ["Net Income", "Net Income Common Stockholders"]:
+        if label in col.index and not pd.isna(col.get(label)):
+            net_income = float(col[label])
+            break
+
+    if net_income is None:
+        return None, {"status": "missing_net_income"}, False, False
+
+    adj_net_income = net_income
+
+    # --- Exceptional / Unusual Items ---
+    exceptional = None
+    exc_found = False
+    for label in ["Total Unusual Items", "Unusual Items", "Exceptional Items",
+                  "Other Non Operating Income Expenses"]:
+        if label in col.index and not pd.isna(col.get(label)):
+            exceptional = float(col[label])
+            exc_found = True
+            break
+
+    if exceptional is not None:
+        # Remove exceptional item and add back its tax shield
+        tax_effect = exceptional * INDIA_TAX_RATE
+        adj_net_income = adj_net_income - exceptional + tax_effect
+
+    # --- Minority Interest ---
+    minority = None
+    min_found = False
+    for label in ["Minority Interest", "Non Controlling Interest"]:
+        if label in col.index and not pd.isna(col.get(label)):
+            minority = float(col[label])
+            min_found = True
+            break
+
+    if minority is not None:
+        adj_net_income = adj_net_income - abs(minority)
+
+    if shares_outstanding and shares_outstanding > 0:
+        q_adj_eps = adj_net_income / shares_outstanding
+    else:
+        q_adj_eps = None
+
+    detail = {
+        "reported_ni_cr": crores(net_income),
+        "exceptional_cr": crores(exceptional),
+        "minority_cr":    crores(minority),
+        "adj_ni_cr":      crores(adj_net_income),
+        "adj_eps":        safe_round(q_adj_eps),
+    }
+    return q_adj_eps, detail, exc_found, min_found
+
+
 def compute_adjusted_eps(ticker_obj, shares_outstanding):
     """
     Computes quarterly adjusted EPS by stripping exceptional items
-    and minority interest from reported net income.
+    and minority interest from reported net income — for BOTH the most
+    recent 4 quarters (TTM) AND the prior 4 quarters (prior-year TTM).
+
+    Pulling 8 quarters lets us compute proper YoY growth on TTM, not
+    noisy latest-vs-average-of-4 (which was the bug fixed 2026-04-19).
 
     Returns:
-        adj_eps_quarters: list of up to 4 quarterly adjusted EPS values (newest first)
-        ttm_adj_eps:      sum of last 4 quarters (Trailing Twelve Months)
-        eps_quality:      "CLEAN", "PARTIAL", or "UNVERIFIED"
-        eps_details:      dict with per-quarter breakdown for transparency
+        adj_eps_quarters:   list of up to 4 quarterly adjusted EPS (newest first, recent year)
+        ttm_adj_eps:        sum of last 4 quarters (TTM)
+        prior_ttm_adj_eps:  sum of quarters 5-8 (prior-year TTM) — or None if unavailable
+        eps_quality:        "CLEAN", "PARTIAL", or "UNVERIFIED"
+        eps_details:        list of per-quarter breakdown dicts (most recent 4)
     """
     try:
         inc = ticker_obj.quarterly_income_stmt
     except Exception as e:
         log.warning(f"Could not fetch income statement: {e}")
-        return None, None, "UNVERIFIED", {}
+        return None, None, None, "UNVERIFIED", []
 
     if inc is None or inc.empty:
-        return None, None, "UNVERIFIED", {}
+        return None, None, None, "UNVERIFIED", []
 
-    adj_eps_quarters = []
-    eps_details = []
-    exceptional_found = False
-    minority_found = False
+    exc_any = False
+    min_any = False
 
-    # Take up to 4 most recent quarters (columns are dates, newest first)
-    quarters = inc.columns[:4]
+    def _process(q_dates):
+        nonlocal exc_any, min_any
+        eps_list = []
+        details = []
+        for q_date in q_dates:
+            eps, detail, exc, mn = _clean_one_quarter(inc[q_date], shares_outstanding)
+            exc_any = exc_any or exc
+            min_any = min_any or mn
+            detail = {"date": str(q_date)[:10], **detail}
+            eps_list.append(safe_round(eps))
+            details.append(detail)
+        return eps_list, details
 
-    for q_date in quarters:
-        col = inc[q_date]
+    # Columns are sorted newest→oldest by yfinance
+    recent_cols = inc.columns[:4]
+    prior_cols  = inc.columns[4:8]
 
-        # --- Net Income (reported) ---
-        net_income = None
-        for label in ["Net Income", "Net Income Common Stockholders"]:
-            if label in col.index and not pd.isna(col.get(label)):
-                net_income = float(col[label])
-                break
+    adj_eps_quarters, eps_details = _process(recent_cols)
+    prior_eps_quarters, _         = _process(prior_cols) if len(prior_cols) else ([], [])
 
-        if net_income is None:
-            adj_eps_quarters.append(None)
-            eps_details.append({"date": str(q_date)[:10], "status": "missing_net_income"})
-            continue
+    # TTM helper — requires all 4 quarters clean. Partial data falls back to scaling.
+    def _ttm(lst):
+        valid = [x for x in lst if x is not None]
+        if len(valid) == 4:
+            return safe_round(sum(valid))
+        if valid:
+            return safe_round(sum(valid) * 4 / len(valid))
+        return None
 
-        adj_net_income = net_income
+    ttm_adj_eps       = _ttm(adj_eps_quarters)
+    prior_ttm_adj_eps = _ttm(prior_eps_quarters) if prior_eps_quarters else None
 
-        # --- Exceptional / Unusual Items ---
-        exceptional = None
-        for label in ["Total Unusual Items", "Unusual Items", "Exceptional Items",
-                      "Other Non Operating Income Expenses"]:
-            if label in col.index and not pd.isna(col.get(label)):
-                exceptional = float(col[label])
-                exceptional_found = True
-                break
-
-        if exceptional is not None:
-            # Remove exceptional item and add back its tax shield
-            tax_effect = exceptional * INDIA_TAX_RATE
-            adj_net_income = adj_net_income - exceptional + tax_effect
-
-        # --- Minority Interest ---
-        minority = None
-        for label in ["Minority Interest", "Non Controlling Interest"]:
-            if label in col.index and not pd.isna(col.get(label)):
-                minority = float(col[label])
-                minority_found = True
-                break
-
-        if minority is not None:
-            adj_net_income = adj_net_income - abs(minority)
-
-        # --- Adjusted EPS for this quarter ---
-        if shares_outstanding and shares_outstanding > 0:
-            q_adj_eps = adj_net_income / shares_outstanding
-        else:
-            q_adj_eps = None
-
-        adj_eps_quarters.append(safe_round(q_adj_eps))
-        eps_details.append({
-            "date":           str(q_date)[:10],
-            "reported_ni_cr": crores(net_income),
-            "exceptional_cr": crores(exceptional),
-            "minority_cr":    crores(minority),
-            "adj_ni_cr":      crores(adj_net_income),
-            "adj_eps":        safe_round(q_adj_eps),
-        })
-
-    # TTM = sum of last 4 valid quarters
-    valid = [x for x in adj_eps_quarters if x is not None]
-    ttm_adj_eps = safe_round(sum(valid)) if len(valid) == 4 else (
-        safe_round(sum(valid) * 4 / len(valid)) if valid else None
-    )
-
-    # Quality flag
-    if exceptional_found and minority_found:
+    # Quality flag (based on recent 4 quarters, which drives scoring)
+    if exc_any and min_any:
         quality = "CLEAN"
-    elif exceptional_found or minority_found:
+    elif exc_any or min_any:
         quality = "PARTIAL"
     else:
         quality = "UNVERIFIED"
 
-    return adj_eps_quarters, ttm_adj_eps, quality, eps_details
+    return adj_eps_quarters, ttm_adj_eps, prior_ttm_adj_eps, quality, eps_details
 
 
 # ─────────────────────────────────────────────
@@ -583,13 +617,14 @@ def fetch_stock(symbol, index_history):
         result["is_banking"]         = is_banking
 
         # ── ADJUSTED EPS (our computation) ──
-        adj_quarters, ttm_adj_eps, eps_quality, eps_details = compute_adjusted_eps(
+        adj_quarters, ttm_adj_eps, prior_ttm_adj_eps, eps_quality, eps_details = compute_adjusted_eps(
             t, result["shares_out"]
         )
-        result["adj_eps_quarters"] = adj_quarters    # [Q1, Q2, Q3, Q4] newest first
-        result["ttm_adj_eps"]      = ttm_adj_eps
-        result["eps_quality"]      = eps_quality
-        result["eps_details"]      = eps_details
+        result["adj_eps_quarters"]  = adj_quarters    # [Q1, Q2, Q3, Q4] newest first
+        result["ttm_adj_eps"]       = ttm_adj_eps
+        result["prior_ttm_adj_eps"] = prior_ttm_adj_eps
+        result["eps_quality"]       = eps_quality
+        result["eps_details"]       = eps_details
 
         # ── Adjusted P/E ──
         price = result["price"]
@@ -597,15 +632,14 @@ def fetch_stock(symbol, index_history):
             price and ttm_adj_eps and ttm_adj_eps > 0
         ) else None
 
-        # ── EPS Growth (from adjusted quarters) ──
-        # Compare newest quarter vs same quarter one year ago (if available)
+        # ── EPS Growth (proper TTM-YoY, not noisy single-quarter vs trailing-year-average) ──
+        # Compare TTM (last 4 quarters) vs prior-year TTM (quarters 5-8).
+        # Fixed 2026-04-19: was previously (newest_quarter / 4q_avg - 1) which overreacts
+        # to any single-quarter spike and is NOT the same as YoY growth.
         eps_growth_rate = None
-        if adj_quarters and len(adj_quarters) >= 4:
-            newest = adj_quarters[0]
-            oldest = adj_quarters[3]
-            if newest and oldest and oldest != 0:
-                eps_growth_rate = (newest - oldest) / abs(oldest)
-        # Fallback to Yahoo's earnings growth
+        if ttm_adj_eps is not None and prior_ttm_adj_eps is not None and prior_ttm_adj_eps > 0:
+            eps_growth_rate = (ttm_adj_eps / prior_ttm_adj_eps - 1)
+        # Fallback to Yahoo's earnings growth if we don't have 8 quarters of data
         if eps_growth_rate is None and result["earnings_growth_pct"] is not None:
             eps_growth_rate = result["earnings_growth_pct"] / 100
         result["eps_growth_rate"] = eps_growth_rate

@@ -183,18 +183,55 @@ td{padding:10px 12px;vertical-align:middle;white-space:nowrap}
 /* ── WARNINGS ── */
 .warning-bar{background:#1c1200;border:1px solid #78350f;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#fbbf24;display:flex;gap:8px;align-items:center}
 
+/* ── BACKTEST TAB ── */
+.bt-kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:#1e1e2e;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden;margin-bottom:20px}
+.bt-kpi{background:#111118;padding:14px 16px}
+.bt-kpi-label{font-size:9px;color:#52525b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:700}
+.bt-kpi-val{font-size:18px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+.bt-kpi-sub{font-size:10px;color:#71717a;margin-top:2px}
+.bt-panel{background:#111118;border:1px solid #1e1e2e;border-radius:12px;margin-bottom:20px;overflow:hidden}
+.bt-panel-hdr{padding:14px 18px;border-bottom:1px solid #1e1e2e}
+.bt-panel-title{font-size:12px;font-weight:700;color:#fff;margin-bottom:3px}
+.bt-panel-sub{font-size:11px;color:#71717a}
+.bt-table{width:100%;border-collapse:collapse;min-width:900px}
+.bt-table thead th{background:#0d0d15;padding:10px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#52525b;text-align:left;border-bottom:1px solid #1e1e2e;white-space:nowrap}
+.bt-table tbody td{padding:9px 12px;font-size:12px;border-bottom:1px solid #0f0f18;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bt-table tbody tr:last-child td{border:none}
+.bt-table tbody tr{cursor:pointer;transition:background .1s}
+.bt-table tbody tr:hover{background:#13131e}
+.bt-quarter-expand{display:none;background:#0d0d15}
+.bt-quarter-expand.open{display:table-row}
+.bt-pick-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:16px}
+.bt-pick{background:#111118;border:1px solid #1e1e2e;border-radius:6px;padding:8px 10px}
+.bt-pick-sym{font-size:11px;font-weight:700;color:#fff;margin-bottom:2px}
+.bt-pick-score{font-size:10px;color:#a1a1aa}
+.bt-pick-score .sub{color:#52525b;margin-left:4px}
+.bt-asm-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #1e1e2e;font-size:12px}
+.bt-asm-row:last-child{border:none}
+.bt-asm-row .lbl{color:#71717a}
+.bt-asm-row .val{color:#d4d4d8;font-weight:600;font-variant-numeric:tabular-nums}
+
 /* ── RESPONSIVE ── */
+@media(max-width:1200px){
+  .bt-kpi-grid{grid-template-columns:repeat(4,1fr)}
+  .bt-pick-grid{grid-template-columns:repeat(4,1fr)}
+}
 @media(max-width:900px){
   .model-blocks{grid-template-columns:1fr}
   .kpi-bar{grid-template-columns:repeat(2,1fr)}
   .split-panel{grid-template-columns:1fr}
   .expand-inner{grid-template-columns:1fr 1fr}
+  .bt-kpi-grid{grid-template-columns:repeat(3,1fr)}
+  .bt-pick-grid{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:600px){
   .kpi-bar{grid-template-columns:1fr}
   .expand-inner{grid-template-columns:1fr}
+  .bt-kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .bt-pick-grid{grid-template-columns:repeat(2,1fr)}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -202,10 +239,11 @@ td{padding:10px 12px;vertical-align:middle;white-space:nowrap}
 <nav>
   <div class="nav-logo">NIFTY <span>50</span></div>
   <div class="nav-tabs">
-    <div class="nav-tab active" onclick="showTab('overview')">Overview</div>
-    <div class="nav-tab" onclick="showTab('stocks')">All Stocks</div>
-    <div class="nav-tab" onclick="showTab('model')">Scoring Model</div>
-    <div class="nav-tab" onclick="showTab('simulation')">Simulation</div>
+    <div class="nav-tab active" onclick="showTab('overview', event)">Overview</div>
+    <div class="nav-tab" onclick="showTab('stocks', event)">All Stocks</div>
+    <div class="nav-tab" onclick="showTab('model', event)">Scoring Model</div>
+    <div class="nav-tab" onclick="showTab('backtest', event)">Backtest</div>
+    <div class="nav-tab" onclick="showTab('simulation', event)">Simulation</div>
   </div>
   <div class="nav-meta">
     Data: Yahoo Finance &nbsp;|&nbsp;
@@ -433,7 +471,177 @@ td{padding:10px 12px;vertical-align:middle;white-space:nowrap}
 
 
 <!-- ════════════════════════════════════════════
-     TAB 4 — SIMULATION
+     TAB 4 — BACKTEST
+════════════════════════════════════════════ -->
+<div id="tab-backtest" class="tab-content">
+  <div style="margin:20px 0">
+
+    <!-- Backtest empty state (shown when backtest_results.json is missing) -->
+    <div id="bt-empty" class="sim-empty" style="display:none">
+      <div class="sim-empty-icon">⏳</div>
+      <div class="sim-empty-title">Backtest not yet run</div>
+      <div class="sim-empty-sub">
+        The backtest pipeline is ready but <code>backtest_results/results.json</code> doesn't exist yet.<br><br>
+        <strong style="color:#fff">Run locally:</strong><br>
+        <code style="display:block;background:#0d0d15;padding:8px;border-radius:4px;margin:8px auto;max-width:420px;text-align:left;color:#d4d4d8;font-size:12px">
+        py build_composition.py<br>
+        py backtest_fetch.py          # ~15-20 min, one-time<br>
+        py backtest_simulate.py<br>
+        git add backtest_results/ nifty50_historical_composition.json<br>
+        git commit -m "Backtest results"<br>
+        git push
+        </code>
+        Once <code>backtest_results/results.json</code> is in the repo, reload this page.
+      </div>
+    </div>
+
+    <!-- Backtest full view -->
+    <div id="bt-main" style="display:none">
+
+      <!-- Verdict header -->
+      <div style="background:linear-gradient(135deg,#111118 0%,#1a1025 100%);border:1px solid #1e1e2e;border-radius:12px;padding:24px;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#f97316;margin-bottom:6px">Out-of-sample backtest</div>
+            <div style="font-size:22px;font-weight:800;color:#fff;margin-bottom:2px" id="bt-verdict-headline">—</div>
+            <div style="font-size:12px;color:#a1a1aa" id="bt-verdict-sub">—</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:#52525b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Window</div>
+            <div style="font-size:14px;color:#d4d4d8;font-weight:600" id="bt-window">—</div>
+            <div style="font-size:10px;color:#52525b;margin-top:3px" id="bt-quarters-count">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Bar (data-dense) -->
+      <div class="bt-kpi-grid">
+        <div class="bt-kpi"><div class="bt-kpi-label">Portfolio Total Return</div><div class="bt-kpi-val" id="bt-k-total-ret">—</div><div class="bt-kpi-sub" id="bt-k-total-ret-sub">—</div></div>
+        <div class="bt-kpi"><div class="bt-kpi-label">Nifty 50 Total Return</div><div class="bt-kpi-val" id="bt-k-bench-ret">—</div><div class="bt-kpi-sub">Buy & hold index</div></div>
+        <div class="bt-kpi"><div class="bt-kpi-label">Total Spread</div><div class="bt-kpi-val" id="bt-k-spread">—</div><div class="bt-kpi-sub">Portfolio − Benchmark</div></div>
+        <div class="bt-kpi"><div class="bt-kpi-label">CAGR (Portfolio)</div><div class="bt-kpi-val" id="bt-k-cagr">—</div><div class="bt-kpi-sub" id="bt-k-cagr-sub">Annualised</div></div>
+        <div class="bt-kpi"><div class="bt-kpi-label">CAGR (Benchmark)</div><div class="bt-kpi-val" id="bt-k-cagr-bench">—</div><div class="bt-kpi-sub">Nifty 50 annualised</div></div>
+        <div class="bt-kpi"><div class="bt-kpi-label">Annual Alpha (Jensen's)</div><div class="bt-kpi-val" id="bt-k-alpha">—</div><div class="bt-kpi-sub" id="bt-k-alpha-sub">Risk-adjusted excess</div></div>
+        <div class="bt-kpi"><div class="bt-kpi-label">Beta vs Nifty</div><div class="bt-kpi-val" id="bt-k-beta">—</div><div class="bt-kpi-sub" id="bt-k-beta-sub">Market sensitivity</div></div>
+        <div class="bt-kpi"><div class="bt-kpi-label">Sharpe (Portfolio)</div><div class="bt-kpi-val" id="bt-k-sharpe-p">—</div><div class="bt-kpi-sub" id="bt-k-sharpe-p-sub">Risk-adjusted return</div></div>
+        <div class="bt-kpi"><div class="bt-kpi-label">Sharpe (Benchmark)</div><div class="bt-kpi-val" id="bt-k-sharpe-b">—</div><div class="bt-kpi-sub">Index Sharpe ratio</div></div>
+        <div class="bt-kpi"><div class="bt-kpi-label">Tracking Error</div><div class="bt-kpi-val" id="bt-k-tracking">—</div><div class="bt-kpi-sub">Annualised σ of spread</div></div>
+        <div class="bt-kpi"><div class="bt-kpi-label">Overall Hit Rate</div><div class="bt-kpi-val" id="bt-k-hit">—</div><div class="bt-kpi-sub">% quarters picks beat Nifty</div></div>
+        <div class="bt-kpi"><div class="bt-kpi-label">Quarters Won / Lost</div><div class="bt-kpi-val" id="bt-k-wl">—</div><div class="bt-kpi-sub">Positive spread vs Nifty</div></div>
+      </div>
+
+      <!-- Equity curve -->
+      <div class="bt-panel">
+        <div class="bt-panel-hdr">
+          <div class="bt-panel-title">Cumulative NAV — Portfolio vs Nifty 50</div>
+          <div class="bt-panel-sub">₹10L initial capital · Equal-weighted top 25 · Rebalanced quarterly · Net of 0.20% transaction cost per side</div>
+        </div>
+        <div style="padding:16px">
+          <canvas id="bt-nav-chart" height="90"></canvas>
+          <div id="bt-nav-legend" style="display:flex;justify-content:center;gap:24px;margin-top:12px;font-size:11px"></div>
+        </div>
+      </div>
+
+      <!-- Per-quarter performance bars -->
+      <div class="bt-panel">
+        <div class="bt-panel-hdr">
+          <div class="bt-panel-title">Quarterly Spread — Portfolio minus Nifty 50 (per rebalance period)</div>
+          <div class="bt-panel-sub">Green = portfolio beat index that quarter · Red = underperformed · Height = spread magnitude</div>
+        </div>
+        <div style="padding:16px">
+          <canvas id="bt-spread-chart" height="70"></canvas>
+        </div>
+      </div>
+
+      <!-- Per-quarter table -->
+      <div class="bt-panel">
+        <div class="bt-panel-hdr">
+          <div class="bt-panel-title">Per-Quarter Detail</div>
+          <div class="bt-panel-sub">Click any row to see that quarter's top 25 picks</div>
+        </div>
+        <div class="table-scroll">
+          <table class="bt-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Rebalance Date</th>
+                <th>Executed</th>
+                <th>Portfolio Return</th>
+                <th>Nifty Return</th>
+                <th>Spread</th>
+                <th>Hit Rate</th>
+                <th>NAV After</th>
+                <th>Picks</th>
+              </tr>
+            </thead>
+            <tbody id="bt-quarters-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Per-stock hit frequency -->
+      <div class="bt-panel">
+        <div class="bt-panel-hdr">
+          <div class="bt-panel-title">Most-Picked Stocks Across All 16 Quarters</div>
+          <div class="bt-panel-sub">How often each ticker appeared in the top 25, and how often it beat the index when picked</div>
+        </div>
+        <div class="table-scroll">
+          <table class="bt-table">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Times Picked</th>
+                <th>Times Beat Nifty</th>
+                <th>Win Rate (when picked)</th>
+                <th>Avg Return When Picked</th>
+                <th>Avg Spread When Picked</th>
+              </tr>
+            </thead>
+            <tbody id="bt-tickers-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Assumptions + Limitations side by side -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div class="bt-panel" style="margin:0">
+          <div class="bt-panel-hdr">
+            <div class="bt-panel-title">Assumptions</div>
+            <div class="bt-panel-sub">Explicit parameters used in the simulation</div>
+          </div>
+          <div style="padding:14px 18px" id="bt-assumptions"></div>
+        </div>
+        <div class="bt-panel" style="margin:0">
+          <div class="bt-panel-hdr" style="border-color:#78350f">
+            <div class="bt-panel-title" style="color:#fbbf24">Known Limitations</div>
+            <div class="bt-panel-sub">Read this before trusting any single number</div>
+          </div>
+          <div style="padding:14px 18px;font-size:11px;color:#a1a1aa;line-height:1.7">
+            <div style="margin-bottom:10px"><strong style="color:#fbbf24">1. Fundamentals restatement bias.</strong> yfinance returns <em>latest</em> financials, not the original filing snapshot. Companies sometimes restate numbers after the fact. Our scoring uses what Yahoo serves today, not what was actually filed on each historical rebalance date. Paid PIT databases (CRSP, S&amp;P Capital IQ) solve this; we don't use them.</div>
+            <div style="margin-bottom:10px"><strong style="color:#fbbf24">2. Small sample.</strong> 16 rebalance periods is enough to spot directional patterns but too few for statistically-reliable Sharpe or alpha estimates. Treat p-values with suspicion.</div>
+            <div style="margin-bottom:10px"><strong style="color:#fbbf24">3. Execution price.</strong> We execute at next-day close (T+1 close) as a proxy for open. Real Indian open prices from yfinance are inconsistent. Live slippage may be modestly higher.</div>
+            <div style="margin-bottom:10px"><strong style="color:#fbbf24">4. EPS quality is mostly PARTIAL.</strong> Yahoo doesn't always serve both <em>exceptional items</em> and <em>minority interest</em> rows. Stocks with UNVERIFIED EPS use raw Yahoo Net Income.</div>
+            <div style="margin-bottom:10px"><strong style="color:#fbbf24">5. Costs not modelled.</strong> 0.20% per side captures brokerage + STT + stamp + GST roughly, but ignores bid-ask slippage on less-liquid names and any long-term-capital-gains tax consequences.</div>
+            <div><strong style="color:#22c55e">✓ Survivorship IS handled correctly.</strong> Every rebalance uses the <em>actual historical Nifty 50 composition</em> at that date. HDFC Ltd disappears after its July 2023 merger. ADANIENT not held before Sep 2022. Data: NSE reconstitution announcements.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /bt-main -->
+
+    <!-- Error state -->
+    <div id="bt-error" class="sim-empty" style="display:none">
+      <div class="sim-empty-icon">⚠</div>
+      <div class="sim-empty-title">Error loading backtest results</div>
+      <div class="sim-empty-sub" id="bt-error-msg"></div>
+    </div>
+
+  </div>
+</div><!-- /tab-backtest -->
+
+
+<!-- ════════════════════════════════════════════
+     TAB 5 — SIMULATION
 ════════════════════════════════════════════ -->
 <div id="tab-simulation" class="tab-content">
   <div style="margin:20px 0">
@@ -855,6 +1063,331 @@ function renderSimulation(d) {
     </div>`;
 }
 
+// ═══════════════════════════════════════════════════════════
+// BACKTEST TAB
+// ═══════════════════════════════════════════════════════════
+let BACKTEST_DATA = null;
+let BACKTEST_LOADED = false;
+let btNavChart = null, btSpreadChart = null;
+
+async function loadBacktest() {
+  if (BACKTEST_DATA) return;             // already loaded successfully
+  try {
+    const r = await fetch('backtest_results/results.json?_=' + Date.now());
+    if (r.status === 404) {
+      // Fallback: also try at repo root for folks who've flattened things
+      const r2 = await fetch('results.json?_=' + Date.now());
+      if (r2.status === 404) return;     // still missing — caller will show empty
+      if (!r2.ok) throw new Error('HTTP ' + r2.status);
+      BACKTEST_DATA = await r2.json();
+    } else if (!r.ok) {
+      throw new Error('HTTP ' + r.status);
+    } else {
+      BACKTEST_DATA = await r.json();
+    }
+  } catch (e) {
+    document.getElementById('bt-empty').style.display = 'none';
+    document.getElementById('bt-main').style.display = 'none';
+    const err = document.getElementById('bt-error');
+    err.style.display = 'block';
+    document.getElementById('bt-error-msg').textContent = e.message;
+    throw e;  // caller can decide
+  }
+}
+
+function showBacktestEmpty() {
+  document.getElementById('bt-empty').style.display = 'block';
+  document.getElementById('bt-main').style.display = 'none';
+  document.getElementById('bt-error').style.display = 'none';
+}
+
+async function renderBacktest() {
+  try { await loadBacktest(); } catch (_) { return; }
+  if (!BACKTEST_DATA) { showBacktestEmpty(); return; }
+  document.getElementById('bt-empty').style.display = 'none';
+  document.getElementById('bt-error').style.display = 'none';
+  document.getElementById('bt-main').style.display = 'block';
+
+  const d = BACKTEST_DATA;
+  const s = d.summary || {};
+  const quarters = d.quarters || [];
+  const fmt = (v, sfx='', dp=2) => (v==null||!isFinite(v)) ? '—' : (v>=0&&sfx==='%'?'+':'') + v.toFixed(dp) + sfx;
+  const sign = v => v >= 0 ? 'up' : 'dn';
+  const ruR = v => (v==null||!isFinite(v)) ? '—' : '₹' + Math.round(v).toLocaleString('en-IN');
+
+  // ── Verdict header ──
+  const outperformed = (s.spread_pct || 0) > 0;
+  const headline = outperformed
+    ? `Model BEAT Nifty 50 by ${fmt(s.spread_pct,'%')}`
+    : `Model LAGGED Nifty 50 by ${fmt(Math.abs(s.spread_pct||0),'%')}`;
+  document.getElementById('bt-verdict-headline').textContent = headline;
+  document.getElementById('bt-verdict-headline').style.color = outperformed ? '#4ade80' : '#f87171';
+
+  const hitPct = ((s.overall_hit_rate || 0) * 100).toFixed(0);
+  document.getElementById('bt-verdict-sub').innerHTML =
+    `Overall hit rate: <strong style="color:#fff">${hitPct}%</strong> of picks beat the index (avg across quarters)` +
+    ` · Annual alpha: <strong style="color:${s.annual_alpha_pct>0?'#4ade80':'#f87171'}">${fmt(s.annual_alpha_pct,'%')}</strong>` +
+    ` · ${fmt(s.years_simulated, ' yrs', 1)} simulated`;
+
+  const firstQ = quarters[0], lastQ = quarters[quarters.length-1];
+  document.getElementById('bt-window').textContent =
+    firstQ && lastQ ? `${firstQ.nominal_date} → ${lastQ.nominal_date}` : '—';
+  document.getElementById('bt-quarters-count').textContent =
+    `${s.num_quarters || quarters.length} quarterly rebalances`;
+
+  // ── KPI bar ──
+  const setK = (id, v, sub) => {
+    document.getElementById(id).textContent = v;
+    if (sub != null) document.getElementById(id+'-sub').textContent = sub;
+  };
+  const setKSigned = (id, v, sfx='%') => {
+    const el = document.getElementById(id);
+    el.textContent = fmt(v, sfx);
+    el.style.color = v == null ? '#fff' : v >= 0 ? '#4ade80' : '#f87171';
+  };
+
+  setKSigned('bt-k-total-ret', s.total_return_pct);
+  document.getElementById('bt-k-total-ret-sub').textContent = ruR(s.final_portfolio_value) + ' final NAV';
+  setKSigned('bt-k-bench-ret', s.total_benchmark_return_pct);
+  setKSigned('bt-k-spread',    s.spread_pct);
+  setKSigned('bt-k-cagr',      s.annual_return_pct);
+  document.getElementById('bt-k-cagr-sub').textContent = `From ₹${(s.initial_capital/1e5).toFixed(0)}L start`;
+  setKSigned('bt-k-cagr-bench', s.annual_benchmark_return_pct);
+  setKSigned('bt-k-alpha',     s.annual_alpha_pct);
+  document.getElementById('bt-k-alpha-sub').textContent = 'After adjusting for beta';
+  setK('bt-k-beta', (s.beta==null?'—':s.beta.toFixed(2)));
+  document.getElementById('bt-k-beta-sub').textContent =
+    s.beta > 1.1 ? 'Higher vol than index' : s.beta > 0.9 ? 'Index-like' : s.beta > 0 ? 'Lower vol than index' : '—';
+
+  setK('bt-k-sharpe-p', s.sharpe_portfolio==null?'—':s.sharpe_portfolio.toFixed(2));
+  document.getElementById('bt-k-sharpe-p-sub').textContent =
+    s.sharpe_portfolio > 1 ? 'Good risk-adjusted' : s.sharpe_portfolio > 0.5 ? 'Moderate' : 'Weak';
+  setK('bt-k-sharpe-b', s.sharpe_benchmark==null?'—':s.sharpe_benchmark.toFixed(2));
+
+  document.getElementById('bt-k-tracking').textContent = fmt(s.tracking_error_annual_pct,'%');
+  document.getElementById('bt-k-hit').textContent = hitPct + '%';
+
+  const won = quarters.filter(q => (q.spread_pct||0) > 0).length;
+  const lost = quarters.length - won;
+  const wlEl = document.getElementById('bt-k-wl');
+  wlEl.textContent = `${won} / ${lost}`;
+  wlEl.style.color = won > lost ? '#4ade80' : won === lost ? '#fbbf24' : '#f87171';
+
+  // ── NAV chart ──
+  const navLabels = ['Start', ...quarters.map(q => q.nominal_date)];
+  const navP = d.portfolio_nav_at_rebalance || [];
+  const navB = d.benchmark_nav_at_rebalance || [];
+  // Trim off the final segment so chart length matches labels, or include it as "End"
+  let chartLabels = navLabels.slice();
+  let chartP = navP.slice(0, chartLabels.length);
+  let chartB = navB.slice(0, chartLabels.length);
+  if (navP.length > chartLabels.length) {
+    chartLabels.push('End');
+    chartP = navP.slice();
+    chartB = navB.slice();
+  }
+
+  if (btNavChart) btNavChart.destroy();
+  btNavChart = new Chart(document.getElementById('bt-nav-chart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: chartLabels,
+      datasets: [
+        {
+          label: 'Top 25 Portfolio (₹)',
+          data: chartP,
+          borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,.12)',
+          fill: true, tension: .25, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#f97316',
+        },
+        {
+          label: 'Nifty 50 Buy & Hold (₹)',
+          data: chartB,
+          borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,.08)',
+          fill: true, tension: .25, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#60a5fa',
+          borderDash: [6, 4],
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, interaction: {mode:'index', intersect:false},
+      plugins: {
+        legend: {display:false},
+        tooltip: {
+          backgroundColor: '#0d0d15', borderColor: '#1e1e2e', borderWidth: 1,
+          titleColor: '#fff', bodyColor: '#d4d4d8',
+          callbacks: {
+            label: c => c.dataset.label + ': ' + ruR(c.parsed.y)
+          }
+        }
+      },
+      scales: {
+        x: {ticks:{color:'#71717a', font:{size:10}, maxRotation:45}, grid:{color:'#1e1e2e'}},
+        y: {ticks:{color:'#71717a', font:{size:10}, callback: v => ruR(v)}, grid:{color:'#1e1e2e'}},
+      }
+    }
+  });
+  document.getElementById('bt-nav-legend').innerHTML = `
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:3px;background:#f97316"></span><span style="color:#d4d4d8">Top 25 Portfolio</span></span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:3px;background:#60a5fa;border-top:1px dashed #60a5fa"></span><span style="color:#d4d4d8">Nifty 50 Buy &amp; Hold</span></span>
+  `;
+
+  // ── Spread bar chart ──
+  if (btSpreadChart) btSpreadChart.destroy();
+  btSpreadChart = new Chart(document.getElementById('bt-spread-chart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: quarters.map(q => q.nominal_date),
+      datasets: [{
+        label: 'Spread (% pts)',
+        data: quarters.map(q => q.spread_pct),
+        backgroundColor: quarters.map(q => (q.spread_pct||0) >= 0 ? 'rgba(74,222,128,.75)' : 'rgba(248,113,113,.75)'),
+        borderColor: quarters.map(q => (q.spread_pct||0) >= 0 ? '#4ade80' : '#f87171'),
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {display:false},
+        tooltip: {
+          backgroundColor:'#0d0d15', borderColor:'#1e1e2e', borderWidth:1,
+          titleColor:'#fff', bodyColor:'#d4d4d8',
+          callbacks: {
+            label: c => {
+              const q = quarters[c.dataIndex];
+              return [
+                'Portfolio: ' + fmt(q.return_pct,'%'),
+                'Nifty:     ' + fmt(q.nifty_return_pct,'%'),
+                'Spread:    ' + fmt(q.spread_pct,'%'),
+                'Hit rate:  ' + ((q.hit_rate||0)*100).toFixed(0) + '%',
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {ticks:{color:'#71717a', font:{size:10}, maxRotation:45}, grid:{display:false}},
+        y: {ticks:{color:'#71717a', font:{size:10}, callback: v => v+'%'}, grid:{color:'#1e1e2e'}},
+      }
+    }
+  });
+
+  // ── Per-quarter table ──
+  document.getElementById('bt-quarters-body').innerHTML = quarters.map((q, i) => {
+    const spreadCls = (q.spread_pct||0) >= 0 ? 'up' : 'dn';
+    const pctCls = v => v==null ? 'neu' : v>=0 ? 'up' : 'dn';
+    const hit = ((q.hit_rate||0)*100).toFixed(0);
+    const hitColor = hit >= 60 ? '#4ade80' : hit >= 40 ? '#fbbf24' : '#f87171';
+    const picksList = q.top_25 ? q.top_25.slice(0,6).map(p=>p.ticker).join(', ') + (q.top_25.length>6?', …':'') : '';
+    return `
+      <tr onclick="toggleBtQuarter(${i})">
+        <td style="color:#52525b;font-weight:700">${(q.quarter_idx ?? i) + 1}</td>
+        <td style="color:#fff;font-weight:600">${q.nominal_date}</td>
+        <td style="color:#71717a;font-size:11px">${q.execution_day || '—'}</td>
+        <td class="${pctCls(q.return_pct)}">${fmt(q.return_pct,'%')}</td>
+        <td class="${pctCls(q.nifty_return_pct)}">${fmt(q.nifty_return_pct,'%')}</td>
+        <td class="${spreadCls}" style="font-weight:700">${fmt(q.spread_pct,'%')}</td>
+        <td style="color:${hitColor};font-weight:700">${hit}%</td>
+        <td style="color:#d4d4d8">${ruR(q.portfolio_value_post_rebalance)}</td>
+        <td style="color:#71717a;font-size:11px;max-width:220px;overflow:hidden;text-overflow:ellipsis">${picksList}</td>
+      </tr>
+      <tr class="bt-quarter-expand" id="bt-q-${i}">
+        <td colspan="9">
+          <div class="bt-pick-grid" id="bt-q-inner-${i}"></div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  // ── Ticker frequency table ──
+  const tkStats = {};
+  quarters.forEach(q => {
+    const retMap = {};
+    (q.ticker_returns || []).forEach(tr => {
+      // Simulator emits [ticker, return_pct] tuples
+      const [tk, ret] = Array.isArray(tr) ? tr : [tr.ticker, tr.return];
+      retMap[tk] = ret;
+    });
+    (q.top_25 || []).forEach(p => {
+      const t = p.ticker;
+      if (!tkStats[t]) tkStats[t] = {picks:0, wins:0, rets:[], spreads:[]};
+      tkStats[t].picks++;
+      const ret = retMap[t];
+      if (ret != null) {
+        tkStats[t].rets.push(ret);
+        const spread = ret - (q.nifty_return_pct || 0);
+        tkStats[t].spreads.push(spread);
+        if (spread > 0) tkStats[t].wins++;
+      }
+    });
+  });
+  const tkRows = Object.entries(tkStats)
+    .map(([t, st]) => ({
+      t, picks: st.picks, wins: st.wins,
+      winRate: st.picks ? st.wins/st.picks*100 : 0,
+      avgRet: st.rets.length ? st.rets.reduce((a,b)=>a+b,0)/st.rets.length : null,
+      avgSpread: st.spreads.length ? st.spreads.reduce((a,b)=>a+b,0)/st.spreads.length : null,
+    }))
+    .sort((a,b) => b.picks - a.picks || b.winRate - a.winRate);
+
+  document.getElementById('bt-tickers-body').innerHTML = tkRows.map(r => {
+    const wrCol = r.winRate >= 60 ? '#4ade80' : r.winRate >= 40 ? '#fbbf24' : '#f87171';
+    const spCol = (r.avgSpread||0) >= 0 ? '#4ade80' : '#f87171';
+    return `<tr>
+      <td style="color:#fff;font-weight:700">${r.t}</td>
+      <td>${r.picks} / ${quarters.length}</td>
+      <td>${r.wins}</td>
+      <td style="color:${wrCol};font-weight:700">${r.winRate.toFixed(0)}%</td>
+      <td>${fmt(r.avgRet,'%')}</td>
+      <td style="color:${spCol};font-weight:600">${fmt(r.avgSpread,'%')}</td>
+    </tr>`;
+  }).join('');
+
+  // ── Assumptions ──
+  const a = d.assumptions || {};
+  const asm = [
+    ['Transaction cost', ((a.transaction_cost_per_side||0)*100).toFixed(2) + '% per side'],
+    ['Risk-free rate',   ((a.risk_free_rate_annual||0)*100).toFixed(1) + '% annual (Indian 10Y G-Sec proxy)'],
+    ['Portfolio size',   (a.top_n || '—') + ' stocks, equal-weighted'],
+    ['Initial capital',  ruR(a.initial_capital)],
+    ['Fundamentals lag', (a.fundamental_lag_days || '—') + ' days from quarter-end'],
+    ['Execution price',  a.execution_price || '—'],
+    ['Rebalance cadence','Quarterly (first trading day of Feb/May/Aug/Nov)'],
+    ['Universe',         'Actual historical Nifty 50 constituents at each rebalance'],
+  ];
+  document.getElementById('bt-assumptions').innerHTML = asm.map(([l,v]) =>
+    `<div class="bt-asm-row"><span class="lbl">${l}</span><span class="val">${v}</span></div>`
+  ).join('');
+}
+
+function toggleBtQuarter(i) {
+  const row = document.getElementById('bt-q-' + i);
+  const inner = document.getElementById('bt-q-inner-' + i);
+  if (row.classList.contains('open')) { row.classList.remove('open'); return; }
+
+  const q = BACKTEST_DATA.quarters[i];
+  const retMap = {};
+  (q.ticker_returns || []).forEach(tr => {
+    const [tk, ret] = Array.isArray(tr) ? tr : [tr.ticker, tr.return];
+    retMap[tk] = ret;
+  });
+  inner.innerHTML = (q.top_25 || []).map(p => {
+    const ret = retMap[p.ticker];
+    const spread = ret != null ? ret - (q.nifty_return_pct||0) : null;
+    const retHtml = ret == null ? '<span style="color:#52525b">—</span>' :
+                    ret >= 0 ? `<span style="color:#4ade80">+${ret.toFixed(1)}%</span>` :
+                               `<span style="color:#f87171">${ret.toFixed(1)}%</span>`;
+    const spHtml = spread == null ? '' :
+                   spread >= 0 ? ` <span style="color:#4ade80;font-size:9px">▲${spread.toFixed(1)}</span>` :
+                                 ` <span style="color:#f87171;font-size:9px">▼${Math.abs(spread).toFixed(1)}</span>`;
+    return `<div class="bt-pick">
+      <div class="bt-pick-sym">${p.ticker}</div>
+      <div class="bt-pick-score">Score ${p.total_score?.toFixed?.(0) ?? p.total_score}<span class="sub">(F${Math.round(p.fundamental)}·V${Math.round(p.valuation)}·M${Math.round(p.momentum)})</span></div>
+      <div style="font-size:10px;margin-top:4px">${retHtml}${spHtml}</div>
+    </div>`;
+  }).join('');
+  row.classList.add('open');
+}
+
 // ── Helpers ──
 function scoreColor(sc) {
   if (sc == null) return '#71717a';
@@ -899,12 +1432,13 @@ function sortTable(key) {
   renderTable();
 }
 
-function showTab(name) {
+function showTab(name, evt) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
-  if (name === 'stocks') renderTable();
+  if (evt && evt.target) evt.target.classList.add('active');
+  if (name === 'stocks')   renderTable();
+  if (name === 'backtest') renderBacktest();
 }
 
 // ── Init ──

@@ -1,0 +1,16 @@
+2026-04-19 20:29:40,374  INFO  ============================================================
+2026-04-19 20:29:40,376  INFO  Backtest data fetch started at 2026-04-19 20:29:40.376130
+2026-04-19 20:29:40,376  INFO  Fetch window: 2021-06-01 to 2026-01-01
+2026-04-19 20:29:40,376  INFO  Tickers: 60
+2026-04-19 20:29:40,377  INFO  ============================================================
+2026-04-19 20:29:40,377  INFO  Fetching daily prices for 60 tickers + ^NSEI ...
+2026-04-19 20:29:48,771  ERROR  HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: TATAMOTORS.NS"}}}
+2026-04-19 20:29:49,161  ERROR  $HDFC.NS: possibly delisted; no timezone found
+2026-04-19 20:29:49,337  ERROR  $TATAMOTORS.NS: possibly delisted; no timezone found
+2026-04-19 20:29:51,498  ERROR  $ZOMATO.NS: possibly delisted; no timezone found
+2026-04-19 20:30:01,062  ERROR  
+3 Failed downloads:
+2026-04-19 20:30:01,064  ERROR  ['HDFC.NS', 'TATAMOTORS.NS', 'ZOMATO.NS']: possibly delisted; no timezone found
+2026-04-19 20:30:01,612  WARNING    No price data for HDFC.NS
+2026-04-19 20:30:01,662  WARNING    No price data for TATAMOTORS.NS
+2026-04-19 20:30:01,678  WARNING    No price data for ZOMATO.NS

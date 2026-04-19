@@ -279,3 +279,8 @@
 2026-04-18 16:11:54,164  INFO  EPS Quality — CLEAN: 0 | PARTIAL: 47 | UNVERIFIED: 3
 2026-04-18 16:11:54,165  INFO  Output saved to nifty_data.json
 2026-04-18 16:11:54,165  INFO  ============================================================
+2026-04-19 20:30:07,083  INFO  ============================================================
+2026-04-19 20:30:07,084  INFO  Nifty 50 Dashboard — Data Fetch Starting
+2026-04-19 20:30:07,085  INFO  ============================================================
+2026-04-19 20:30:07,085  INFO  Today is a weekend. Skipping update.
+2026-04-19 20:30:07,085  INFO  Market closed today. Writing holiday status.
