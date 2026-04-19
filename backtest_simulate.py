@@ -72,17 +72,28 @@ log = logging.getLogger(__name__)
 # DATA LOADERS
 # ─────────────────────────────────────────────
 
+def _normalize_dt_index(idx):
+    """Coerce any date-like index to a plain ns-precision, tz-naive DatetimeIndex.
+    Parquet preserves datetime64[ms] which trips pandas-2.x comparisons against
+    default ns Timestamps on newer Python; forcing ns here avoids that."""
+    idx = pd.to_datetime(idx)
+    if getattr(idx, "tz", None) is not None:
+        idx = idx.tz_localize(None)
+    # Force ns precision — parquet may load as [ms]
+    return pd.DatetimeIndex(idx.values.astype("datetime64[ns]"))
+
+
 def load_prices() -> pd.DataFrame:
     """Daily close prices, columns=tickers.NS, index=date."""
     df = pd.read_parquet(CACHE_DIR / "prices.parquet")
-    df.index = pd.to_datetime(df.index).tz_localize(None) if df.index.tz else pd.to_datetime(df.index)
+    df.index = _normalize_dt_index(df.index)
     return df.sort_index()
 
 
 def load_nifty() -> pd.Series:
     """Daily Nifty 50 close, name='^NSEI'."""
     df = pd.read_parquet(CACHE_DIR / "nifty_index.parquet")
-    df.index = pd.to_datetime(df.index).tz_localize(None) if df.index.tz else pd.to_datetime(df.index)
+    df.index = _normalize_dt_index(df.index)
     return df["^NSEI"].dropna().sort_index()
 
 
@@ -321,6 +332,13 @@ def trading_day_offset(prices: pd.DataFrame, as_of: pd.Timestamp, days_back: int
 
 def compute_momentum_pit(prices_col: pd.Series, nifty: pd.Series, as_of: pd.Timestamp):
     """Returns (rel_1m, rel_3m, rel_6m) in percentage points."""
+    # Guard: if caller passed an empty / non-datetime-indexed series (e.g. the
+    # ticker has no price history in cache), skip momentum scoring entirely.
+    if prices_col is None or len(prices_col) == 0 or not isinstance(prices_col.index, pd.DatetimeIndex):
+        return None, None, None
+    if nifty is None or len(nifty) == 0 or not isinstance(nifty.index, pd.DatetimeIndex):
+        return None, None, None
+
     def price_at(series, d):
         idx = series.index[series.index <= d]
         return float(series.loc[idx[-1]]) if len(idx) else None
