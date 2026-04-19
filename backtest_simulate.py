@@ -942,6 +942,47 @@ def main():
 
     result = simulate(compositions, prices, nifty, income_cache, bs_cache, info_map)
 
+    # ── Normalize field names for the dashboard ────────────────────────
+    # The dashboard's Backtest tab reads a specific set of field names.
+    # We add aliases here rather than refactor the simulator so the raw
+    # output (used by backtest_report.py) is preserved.
+    s = result["summary"]
+    qs = result["quarters"]
+    wins   = sum(1 for q in qs if q.get("spread_pct", 0) > 0)
+    losses = sum(1 for q in qs if q.get("spread_pct", 0) <= 0)
+    s["benchmark_return_pct"]  = s.get("total_benchmark_return_pct")
+    s["cagr_portfolio_pct"]    = s.get("annual_return_pct")
+    s["cagr_benchmark_pct"]    = s.get("annual_benchmark_return_pct")
+    s["alpha_annual_pct"]      = s.get("annual_alpha_pct")
+    s["tracking_error_pct"]    = s.get("tracking_error_annual_pct")
+    s["hit_rate_pct"]          = (s.get("overall_hit_rate") or 0) * 100
+    s["wl_record"]             = f"{wins}W / {losses}L"
+    s["window_start"]          = qs[0]["actual_rebalance_day"] if qs else None
+    s["window_end"]            = qs[-1]["actual_rebalance_day"] if qs else None
+    s["window_label"]          = f"{s['window_start']} → {s['window_end']}" if qs else ""
+    # Verdict: human headline for the top of the tab
+    spread = s.get("spread_pct", 0) or 0
+    if   spread >=  5: verdict = f"Model beat the Nifty 50 by {spread:.2f} percentage points over ~{s['years_simulated']:.1f} years"
+    elif spread >=  0: verdict = f"Model edged the Nifty 50 by {spread:.2f} pp — within noise"
+    else:              verdict = f"Model trailed the Nifty 50 by {abs(spread):.2f} pp over ~{s['years_simulated']:.1f} years"
+    s["verdict_headline"] = verdict
+
+    # Per-quarter aliases the dashboard expects
+    for q in qs:
+        q["rebalance_date"]        = q.get("actual_rebalance_day")
+        q["portfolio_return_pct"]  = q.get("return_pct")
+        q["benchmark_return_pct"]  = q.get("nifty_return_pct")
+        q["hit_rate_pct"]          = (q.get("hit_rate") or 0) * 100
+        # picks: expose as list[{ticker,total_score,fundamental,valuation,momentum,return_pct}]
+        tr_map = dict(q.get("ticker_returns", []))
+        picks = []
+        for p in q.get("top_25", []):
+            picks.append({
+                **p,
+                "return_pct": tr_map.get(p.get("ticker")),
+            })
+        q["picks"] = picks
+
     # Save
     with open(RESULTS_DIR / "results.json", "w") as f:
         json.dump(result, f, indent=2, default=str)
