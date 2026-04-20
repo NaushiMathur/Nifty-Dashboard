@@ -229,6 +229,7 @@ td{padding:10px 12px;vertical-align:middle;white-space:nowrap}
   .expand-inner{grid-template-columns:1fr}
   .bt-kpi-grid{grid-template-columns:repeat(2,1fr)}
   .bt-pick-grid{grid-template-columns:repeat(2,1fr)}
+  .bt-bottom-grid{grid-template-columns:1fr}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -537,7 +538,7 @@ td{padding:10px 12px;vertical-align:middle;white-space:nowrap}
           <div class="bt-panel-sub">₹10L initial capital · Equal-weighted top 25 · Rebalanced quarterly · Net of 0.20% transaction cost per side</div>
         </div>
         <div style="padding:16px">
-          <canvas id="bt-nav-chart" height="90"></canvas>
+          <div style="position:relative;height:300px"><canvas id="bt-nav-chart"></canvas></div>
           <div id="bt-nav-legend" style="display:flex;justify-content:center;gap:24px;margin-top:12px;font-size:11px"></div>
         </div>
       </div>
@@ -549,7 +550,7 @@ td{padding:10px 12px;vertical-align:middle;white-space:nowrap}
           <div class="bt-panel-sub">Green = portfolio beat index that quarter · Red = underperformed · Height = spread magnitude</div>
         </div>
         <div style="padding:16px">
-          <canvas id="bt-spread-chart" height="70"></canvas>
+          <div style="position:relative;height:200px"><canvas id="bt-spread-chart"></canvas></div>
         </div>
       </div>
 
@@ -603,7 +604,7 @@ td{padding:10px 12px;vertical-align:middle;white-space:nowrap}
       </div>
 
       <!-- Assumptions + Limitations side by side -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px" class="bt-bottom-grid">
         <div class="bt-panel" style="margin:0">
           <div class="bt-panel-hdr">
             <div class="bt-panel-title">Assumptions</div>
@@ -1209,7 +1210,7 @@ async function renderBacktest() {
       ]
     },
     options: {
-      responsive: true, maintainAspectRatio: false, interaction: {mode:'index', intersect:false},
+      responsive: true, maintainAspectRatio: false, animation: false, interaction: {mode:'index', intersect:false},
       plugins: {
         legend: {display:false},
         tooltip: {
@@ -1246,7 +1247,7 @@ async function renderBacktest() {
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false, animation: false,
       plugins: {
         legend: {display:false},
         tooltip: {
