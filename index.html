@@ -754,7 +754,7 @@ function renderNav(d) {
   const now = new Date();
   const diffH = (now - gen) / 3600000;
   el.textContent = gen.toLocaleString('en-IN', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
-  if (diffH > 48) {
+  if (diffH > 24) {
     el.className = 'freshness-warn';
     el.textContent += ' ⚠ Stale';
   } else {
@@ -937,7 +937,11 @@ function renderTable() {
     return currentSort.dir * (av - bv);
   });
 
+  // Close any open expand row when table re-renders
+  expandedRow = null;
+
   document.getElementById('stocks-body').innerHTML = stocks.map((s,i) => {
+    const rowKey = s.symbol.replace('.NS','').replace(/[^a-zA-Z0-9]/g,'_');
     const sym = s.symbol.replace('.NS','');
     const peClass = !s.adj_ttm_pe ? '' : s.adj_ttm_pe < 15 ? 'pe-cheap' : s.adj_ttm_pe < 22 ? 'pe-fair' : s.adj_ttm_pe < 28 ? 'pe-rich' : 'pe-exp';
     const relCol = v => v == null ? '<span class="neu">—</span>' : v >= 0 ? `<span class="up">+${v}%</span>` : `<span class="dn">${v}%</span>`;
@@ -947,7 +951,7 @@ function renderTable() {
     const sc = s.total_score;
 
     return `
-    <tr class="row-${s.signal||'HOLD'}" onclick="toggleExpand(${i}, '${s.symbol}')">
+    <tr class="row-${s.signal||'HOLD'}" onclick="toggleExpand('${rowKey}', '${s.symbol}')">
       <td class="rank-cell">${s.rank}</td>
       <td class="name-cell">
         <div class="sname">${s.name.length>30?s.name.slice(0,30)+'…':s.name}</div>
@@ -983,20 +987,20 @@ function renderTable() {
       <td>${relCol(s.rel_return_3m)}</td>
       <td>${relCol(s.rel_return_1m)}</td>
     </tr>
-    <tr class="expand-row" id="expand-${i}">
+    <tr class="expand-row" id="expand-${rowKey}">
       <td colspan="20">
-        <div class="expand-inner" id="expand-inner-${i}"></div>
+        <div class="expand-inner" id="expand-inner-${rowKey}"></div>
       </td>
     </tr>`;
   }).join('');
 }
 
 // ── Expand row ──
-function toggleExpand(i, symbol) {
-  const row = document.getElementById('expand-' + i);
-  const inner = document.getElementById('expand-inner-' + i);
+function toggleExpand(rowKey, symbol) {
+  const row = document.getElementById('expand-' + rowKey);
+  const inner = document.getElementById('expand-inner-' + rowKey);
 
-  if (expandedRow === i) {
+  if (expandedRow === rowKey) {
     row.classList.remove('open');
     expandedRow = null;
     return;
@@ -1057,7 +1061,7 @@ function toggleExpand(i, symbol) {
       <div class="expand-row-item"><span class="lbl">Divergence</span><span class="val">${s.forward_eps_diverged ? `<span class="div-flag">⚠ ${s.forward_eps_diverge_pct}%</span>` : `<span style="color:#4ade80">${s.forward_eps_diverge_pct ?? '—'}% ✓</span>`}</span></div>
       <div class="expand-row-item"><span class="lbl">Derived Fwd P/E</span><span class="val">${s.derived_forward_pe ? s.derived_forward_pe+'×' : '—'}</span></div>
       <div class="expand-row-item"><span class="lbl">Analyst Fwd P/E</span><span class="val">${s.analyst_forward_pe ? s.analyst_forward_pe+'×' : '—'}</span></div>
-      <div class="expand-row-item"><span class="lbl">Analyst Count</span><span class="val">${s.analyst_count ?? '—'} ${s.analyst_count < 3 ? '⚠' : ''}</span></div>
+      <div class="expand-row-item"><span class="lbl">Analyst Count</span><span class="val">${s.analyst_count ?? '—'} ${(s.analyst_count == null || s.analyst_count < 3) ? '⚠' : ''}</span></div>
     </div>
     <div class="expand-block">
       <div class="expand-block-title"><span class="expand-block-dot" style="background:var(--mom)"></span>Key Metrics</div>
@@ -1074,13 +1078,13 @@ function toggleExpand(i, symbol) {
     </div>`;
 
   row.classList.add('open');
-  expandedRow = i;
+  expandedRow = rowKey;
 }
 
 // ── Simulation tab ──
 function renderSimulation(d) {
   const top25 = ALL_STOCKS.slice(0,25);
-  const date = d.generated_at ? new Date(d.generated_at).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : 'Today';
+  const date = '18 Apr 2026'; // Prediction lock-in date — do not change to generated_at
   document.getElementById('sim-current-picks').innerHTML = `
     <div style="background:#111118;border:1px solid #1e1e2e;border-radius:10px;padding:16px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f97316;margin-bottom:12px">
@@ -1388,4 +1392,109 @@ async function renderBacktest() {
     ['Initial capital',  ruR(a.initial_capital)],
     ['Fundamentals lag', (a.fundamental_lag_days || '—') + ' days from quarter-end'],
     ['Execution price',  a.execution_price || '—'],
-    ['Rebalance cadence','Quarterly (first trading day of Feb/May/Aug/
+    ['Rebalance cadence','Quarterly (first trading day of Feb/May/Aug/Nov)'],
+    ['Universe',         'Actual historical Nifty 50 constituents at each rebalance'],
+  ];
+  document.getElementById('bt-assumptions').innerHTML = asm.map(([l,v]) =>
+    `<div class="bt-asm-row"><span class="lbl">${l}</span><span class="val">${v}</span></div>`
+  ).join('');
+}
+
+function toggleBtQuarter(i) {
+  const row = document.getElementById('bt-q-' + i);
+  const inner = document.getElementById('bt-q-inner-' + i);
+  if (row.classList.contains('open')) { row.classList.remove('open'); return; }
+
+  const q = BACKTEST_DATA.quarters[i];
+  const retMap = {};
+  (q.ticker_returns || []).forEach(tr => {
+    const [tk, ret] = Array.isArray(tr) ? tr : [tr.ticker, tr.return];
+    retMap[tk] = ret;
+  });
+  inner.innerHTML = (q.top_25 || []).map(p => {
+    const ret = retMap[p.ticker];
+    const spread = ret != null ? ret - (q.nifty_return_pct||0) : null;
+    const retHtml = ret == null ? '<span style="color:#52525b">—</span>' :
+                    ret >= 0 ? `<span style="color:#4ade80">+${ret.toFixed(1)}%</span>` :
+                               `<span style="color:#f87171">${ret.toFixed(1)}%</span>`;
+    const spHtml = spread == null ? '' :
+                   spread >= 0 ? ` <span style="color:#4ade80;font-size:9px">▲${spread.toFixed(1)}</span>` :
+                                 ` <span style="color:#f87171;font-size:9px">▼${Math.abs(spread).toFixed(1)}</span>`;
+    return `<div class="bt-pick">
+      <div class="bt-pick-sym">${p.ticker}</div>
+      <div class="bt-pick-score">Score ${p.total_score?.toFixed?.(0) ?? p.total_score}<span class="sub">(F${Math.round(p.fundamental)}·V${Math.round(p.valuation)}·M${Math.round(p.momentum)})</span></div>
+      <div style="font-size:10px;margin-top:4px">${retHtml}${spHtml}</div>
+    </div>`;
+  }).join('');
+  row.classList.add('open');
+}
+
+// ── Helpers ──
+function scoreColor(sc) {
+  if (sc == null) return '#71717a';
+  if (sc >= 65) return '#4ade80';
+  if (sc >= 50) return '#a3e635';
+  if (sc >= 35) return '#fbbf24';
+  if (sc >= 20) return '#fb923c';
+  return '#f87171';
+}
+
+function populateSectorFilter() {
+  const sectors = [...new Set(ALL_STOCKS.map(s=>s.sector).filter(Boolean))].sort();
+  const sel = document.getElementById('sector-filter');
+  sectors.forEach(sec => {
+    const opt = document.createElement('option');
+    opt.value = sec; opt.textContent = sec;
+    sel.appendChild(opt);
+  });
+}
+
+function filterSignal(sig, btn) {
+  currentSignalFilter = sig;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function filterTable() { renderTable(); }
+
+function sortTable(key) {
+  if (currentSort.key === key) {
+    currentSort.dir *= -1;
+  } else {
+    currentSort.key = key;
+    currentSort.dir = key === 'rank' || key === 'name' ? 1 : -1;
+  }
+  // Reset all headers
+  document.querySelectorAll('thead th').forEach(th => {
+    th.classList.remove('sorted');
+    const a = th.querySelector('.sort-arrow');
+    if (a) a.textContent = '↕';
+  });
+  // Highlight the active column
+  document.querySelectorAll('thead th').forEach(th => {
+    if (th.getAttribute('onclick') === `sortTable('${key}')`) {
+      th.classList.add('sorted');
+      const a = th.querySelector('.sort-arrow');
+      if (a) a.textContent = currentSort.dir === 1 ? '↑' : '↓';
+    }
+  });
+  const arrow = currentSort.dir === 1 ? '↑' : '↓';
+  document.getElementById('sort-info').textContent = 'Sorted by: ' + currentSort.key.replace(/_/g,' ') + ' ' + arrow;
+  renderTable();
+}
+
+function showTab(name, evt) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (evt && evt.target) evt.target.classList.add('active');
+  if (name === 'stocks')   renderTable();
+  if (name === 'backtest') renderBacktest();
+}
+
+// ── Init ──
+loadData();
+</script>
+</body>
+</html>
