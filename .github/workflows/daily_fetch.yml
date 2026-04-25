@@ -7,9 +7,18 @@ name: Daily Nifty 50 Data Fetch
 on:
   schedule:
     - cron: "30 10 * * 1-5"   # Mon–Fri, 10:30 UTC = 4:00pm IST
-  workflow_dispatch:            # Manual trigger from GitHub UI (for testing)
+  workflow_dispatch:           # Manual trigger from GitHub UI (for testing)
+    inputs:
+      force:
+        description: "Force fetch even on weekends/holidays (for testing)"
+        required: false
+        default: "false"
   push:
     branches: [main]
+
+# Allow GITHUB_TOKEN to push commits back to the repo
+permissions:
+  contents: write
 
 jobs:
   fetch-and-update:
@@ -20,6 +29,8 @@ jobs:
       # 1. Check out the repo
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       # 2. Set up Python
       - name: Set up Python
@@ -32,17 +43,10 @@ jobs:
         run: |
           pip install yfinance pandas numpy
 
-      # 4. Run the fetch script
+      # 4. Run the fetch script (force flag bypasses holiday check when triggered manually)
       - name: Fetch Nifty 50 data
-        run: python fetch_data.py
-
-      # 5. Commit the updated data file back to the repo
-      - name: Commit updated data
-        run: |
-          git config --global user.name  "Nifty Dashboard Bot"
-          git config --global user.email "bot@nifty-dashboard"
-          git add nifty_data.json last_successful_run.txt fetch_log.txt
-          git diff --staged --quiet || git commit -m "Auto-update: $(date -u '+%Y-%m-%d %H:%M UTC')"
-          git push
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORCE_FETCH: ${{ github.event.inputs.force }}
+        run: |
+          if [ "$FORCE_FETCH" = "true" ]; then
+            echo "FORCE_FETCH=true — bypassing 
