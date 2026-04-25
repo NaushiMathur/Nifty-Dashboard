@@ -1,0 +1,675 @@
+<\!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nifty 50 — Option B Mock</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#07070d;color:#d4d4d8;min-height:100vh}
+
+/* ── TOP BAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:999;background:#000;border-bottom:1px solid #1e1e2e;padding:10px 24px;display:flex;align-items:center;gap:12px}
+.topbar strong{color:#f97316;font-size:13px;letter-spacing:.5px;margin-right:4px}
+.tbtn{padding:6px 16px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .15s;opacity:.4}
+.tbtn.active{opacity:1}
+.tbtn.tb-before{background:#1e1e2e;color:#a1a1aa;border-color:#2a2a3a}
+.tbtn.tb-after{background:#f97316;color:#fff}
+.topbar-note{margin-left:auto;font-size:11px;color:#3f3f46;font-style:italic}
+
+.demo{padding-top:52px}
+.panel{max-width:1280px;margin:0 auto;padding:28px 28px 80px}
+.wrap{display:none}.wrap.on{display:block}
+
+/* ── SECTION DIVIDERS ── */
+.sec{margin:40px 0 14px;display:flex;align-items:center;gap:12px}
+.sec-line{flex:1;height:1px;background:#1a1a28}
+.sec-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#2e2e42;white-space:nowrap}
+.sec-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:#1c1208;color:#f97316;border:1px solid #78350f;white-space:nowrap}
+
+/* ════════════════════════════
+   BEFORE
+════════════════════════════ */
+.b-nav{background:#111118;border-bottom:1px solid #1e1e2e;padding:14px 20px;display:flex;align-items:center;gap:16px;border-radius:10px}
+.b-logo{font-size:17px;font-weight:800;color:#fff}.b-logo span{color:#f97316}
+.b-tabs{display:flex;gap:4px;margin-left:auto}
+.b-tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;color:#71717a}
+.b-tab.on{background:#f97316;color:#fff}
+.b-meta{font-size:11px;color:#52525b;margin-left:8px}
+
+.b-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:#1e1e2e;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden}
+.b-kpi{background:#111118;padding:16px 20px}
+.b-kpi-lbl{font-size:10px;color:#52525b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600}
+.b-kpi-val{font-size:22px;font-weight:800;color:#fff}
+.b-kpi-sub{font-size:11px;margin-top:3px;color:#71717a}
+
+.b-tbl-wrap{background:#111118;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden}
+.b-tbl-intro{font-size:10px;color:#52525b;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:16px 0 12px}
+.b-tbl-wrap table{width:100%;border-collapse:collapse}
+.b-tbl-wrap thead th{background:#0d0d15;padding:10px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#52525b;text-align:left;border-bottom:1px solid #1e1e2e;white-space:nowrap}
+.b-tbl-wrap tbody tr{border-bottom:1px solid #0f0f18}
+.b-tbl-wrap tbody td{padding:10px 12px;vertical-align:middle;white-space:nowrap}
+.b-rank{font-size:12px;color:#52525b;font-weight:700}
+.b-name{font-weight:700;color:#fff;font-size:13px}
+.b-sym{font-size:10px;color:#52525b;margin-top:1px}
+.b-sec-lbl{font-size:10px;color:#3f3f46;margin-top:1px}
+.b-sig{display:inline-block;padding:3px 9px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.5px}
+.b-sig-BUY{background:#14532d;color:#4ade80}
+.b-sig-HOLD{background:#1c1a08;color:#fbbf24}
+.b-sig-AVOID{background:#450a0a;color:#f87171}
+.b-score-wrap{display:flex;align-items:center;gap:6px}
+.b-bar-bg{width:60px;height:6px;background:#1e1e2e;border-radius:3px;overflow:hidden;flex-shrink:0}
+.b-bar-fill{height:100%;border-radius:3px}
+.b-score-n{font-size:13px;font-weight:800;color:#fff;min-width:28px}
+.b-chips{display:flex;gap:3px;margin-top:3px}
+.b-chip{padding:2px 5px;border-radius:3px;font-size:9px;font-weight:700}
+.b-chip-f{background:#1e3a5f;color:#60a5fa}
+.b-chip-v{background:#2e1a5f;color:#a78bfa}
+.b-chip-m{background:#1a3a2a;color:#34d399}
+.b-eq{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700}
+.b-eq-C{background:#14532d;color:#4ade80}
+.b-eq-P{background:#1c2a40;color:#60a5fa}
+.b-eq-U{background:#2a1a00;color:#fb923c}
+.up{color:#22c55e}.dn{color:#ef4444}
+.b-num{font-variant-numeric:tabular-nums;font-size:12px}
+
+.b-expand{background:#0d0d15;padding:16px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.b-xblk{background:#111118;border-radius:8px;padding:12px}
+.b-xblk-t{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#52525b;margin-bottom:8px}
+.b-xrow{display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px}
+.b-xrow .l{color:#71717a}.b-xrow .v{color:#d4d4d8;font-weight:600}
+.b-sdr{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.b-sdrl{font-size:10px;color:#71717a;width:140px;flex-shrink:0}
+.b-sdrb{flex:1;height:5px;background:#1e1e2e;border-radius:2px;overflow:hidden}
+.b-sdrv{font-size:10px;color:#a1a1aa;width:30px;text-align:right}
+
+.b-bt-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:#1e1e2e;border:1px solid #1e1e2e;border-radius:12px;overflow:hidden}
+.b-bt-kpi{background:#111118;padding:14px 16px}
+.b-bt-lbl{font-size:9px;color:#52525b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:700}
+.b-bt-val{font-size:18px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+.b-bt-sub{font-size:10px;color:#71717a;margin-top:2px}
+
+/* ════════════════════════════
+   AFTER — Option B
+════════════════════════════ */
+
+/* Nav */
+.a-nav{background:#111118;border-bottom:1px solid #1e1e2e;padding:0 24px;display:flex;align-items:center;gap:0;border-radius:10px;overflow:hidden}
+.a-logo{font-size:18px;font-weight:800;color:#fff;padding:18px 0;margin-right:32px;flex-shrink:0}
+.a-logo span{color:#f97316}
+.a-tabs{display:flex;gap:0;margin-right:auto}
+.a-tab{padding:18px 18px 16px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.a-tab.on{color:#fff;border-bottom-color:#f97316}
+.a-tab:hover:not(.on){color:#a1a1aa}
+.a-meta{font-size:12px;color:#6b7280;padding:18px 0;margin-left:16px}
+.a-meta .ok{color:#22c55e}
+
+/* KPI bar */
+.a-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:#1e1e2e;border:1px solid #1e1e2e;border-radius:14px;overflow:hidden}
+.a-kpi{background:#111118;padding:20px 24px;position:relative}
+.a-kpi::after{content:'';position:absolute;bottom:0;left:24px;right:24px;height:1px;background:#1e1e2e}
+.a-kpi:last-child::after{display:none}
+.a-kpi-lbl{font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-weight:700}
+.a-kpi-val{font-size:30px;font-weight:800;color:#fff;line-height:1;letter-spacing:-.5px}
+.a-kpi-sub{font-size:12px;margin-top:6px;color:#9ca3af}
+.a-kpi-up{color:#22c55e}
+.a-kpi-dn{color:#ef4444}
+
+/* Table area */
+.a-tbl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.a-tbl-title{font-size:14px;font-weight:700;color:#e5e7eb}
+.a-tbl-sub{font-size:12px;color:#6b7280;margin-top:2px}
+.a-controls{display:flex;gap:8px;align-items:center}
+.a-search{background:#111118;border:1px solid #27273a;border-radius:8px;padding:8px 14px;color:#e5e7eb;font-size:13px;width:220px}
+.a-search:focus{outline:none;border-color:#f97316}
+.a-filter{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #27273a;background:#111118;color:#6b7280;transition:all .15s}
+.a-filter.on{border-color:#f97316;color:#f97316;background:#1a0f04}
+
+/* Table */
+.a-tbl-wrap{background:#111118;border:1px solid #1e1e2e;border-radius:14px;overflow:hidden}
+.a-tbl-scroll{overflow-x:auto}
+.a-tbl-wrap table{width:100%;border-collapse:collapse;min-width:900px}
+.a-tbl-wrap thead th{
+  background:#0c0c16;
+  padding:12px 16px;
+  font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.6px;
+  color:#4b5563;
+  text-align:left;
+  border-bottom:2px solid #1e1e2e;
+  white-space:nowrap;
+  cursor:pointer;
+  user-select:none
+}
+.a-tbl-wrap thead th:hover{color:#9ca3af}
+.a-tbl-wrap thead th.sorted{color:#f97316}
+.a-tbl-wrap thead th .arr{margin-left:4px;opacity:.5;font-size:10px}
+.a-tbl-wrap thead th.sorted .arr{opacity:1}
+
+/* Row — signal-colored left border is the key hierarchy signal */
+.a-tbl-wrap tbody tr{
+  border-bottom:1px solid #111120;
+  transition:background .12s;
+  cursor:pointer;
+}
+.a-tbl-wrap tbody tr:hover{background:#13131f}
+.a-tbl-wrap tbody td{padding:14px 16px;vertical-align:middle;white-space:nowrap}
+
+/* Left border accent per signal */
+.a-tbl-wrap tbody tr.row-buy td:first-child{border-left:3px solid #22c55e}
+.a-tbl-wrap tbody tr.row-hold td:first-child{border-left:3px solid #fbbf24}
+.a-tbl-wrap tbody tr.row-avoid td:first-child{border-left:3px solid #ef4444}
+.a-tbl-wrap tbody td:first-child{padding-left:13px}/* compensate for border */
+
+/* Rank */
+.a-rank{font-size:13px;color:#6b7280;font-weight:700;min-width:22px;display:inline-block}
+
+/* Company cell */
+.a-name{font-weight:700;color:#f1f5f9;font-size:15px;line-height:1.2}
+.a-sym{font-size:12px;color:#6b7280;margin-top:3px;font-weight:500}
+.a-sector{font-size:11px;color:#374151;margin-top:2px}
+
+/* Signal pill — bigger, cleaner */
+.a-sig{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:800;letter-spacing:.3px}
+.a-sig-BUY{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.a-sig-HOLD{background:rgba(251,191,36,.1);color:#fcd34d;border:1px solid rgba(251,191,36,.2)}
+.a-sig-AVOID{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)}
+
+/* Score — the hero number */
+.a-score-cell{display:flex;align-items:center;gap:10px}
+.a-score-n{font-size:20px;font-weight:900;min-width:34px;letter-spacing:-1px}
+.a-score-n.sc-buy{color:#4ade80}
+.a-score-n.sc-hold{color:#fcd34d}
+.a-score-n.sc-avoid{color:#f87171}
+.a-score-right{display:flex;flex-direction:column;gap:5px}
+.a-bar-bg{width:72px;height:5px;background:#1e1e2e;border-radius:3px;overflow:hidden}
+.a-bar-fill{height:100%;border-radius:3px}
+.a-chips{display:flex;gap:4px}
+.a-chip{padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.2px}
+.a-chip-f{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.15)}
+.a-chip-v{background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.15)}
+.a-chip-m{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.15)}
+
+/* Data cells */
+.a-num{font-variant-numeric:tabular-nums;font-size:14px;color:#d1d5db}
+.a-num.up{color:#4ade80}
+.a-num.dn{color:#f87171}
+.a-num.neu{color:#9ca3af}
+
+/* EPS quality chips */
+.a-eq{display:inline-flex;align-items:center;padding:4px 9px;border-radius:5px;font-size:11px;font-weight:700}
+.a-eq-C{background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.a-eq-P{background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2)}
+.a-eq-U{background:rgba(251,146,60,.1);color:#fb923c;border:1px solid rgba(251,146,60,.2)}
+
+/* "More columns" hint */
+.col-hint{font-size:11px;color:#374151;font-style:italic;padding:10px 16px;text-align:center;border-top:1px solid #111120;background:#0c0c16}
+
+/* Expand row */
+.a-expand{background:#0a0a14;border-top:1px solid #1e1e2e}
+.a-expand-inner{padding:20px 24px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.a-xblk{background:#111118;border:1px solid #1a1a2a;border-radius:10px;padding:16px}
+.a-xblk-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.a-xblk-t-dot{width:6px;height:6px;border-radius:50%}
+.a-xrow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #111120;font-size:13px}
+.a-xrow:last-child{border:none}
+.a-xrow .l{color:#9ca3af;font-size:12px}
+.a-xrow .v{color:#e5e7eb;font-weight:600}
+.a-sdr{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.a-sdrl{font-size:12px;color:#9ca3af;width:148px;flex-shrink:0}
+.a-sdrb{flex:1;height:6px;background:#1a1a2a;border-radius:3px;overflow:hidden}
+.a-sdrv{font-size:12px;color:#d1d5db;width:36px;text-align:right;font-weight:600}
+
+/* Backtest KPI grid */
+.a-bt-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:#1e1e2e;border:1px solid #1e1e2e;border-radius:14px;overflow:hidden}
+.a-bt-kpi{background:#111118;padding:18px 20px}
+.a-bt-lbl{font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:700;line-height:1.4}
+.a-bt-val{font-size:24px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.a-bt-sub{font-size:12px;color:#9ca3af;margin-top:4px}
+
+/* Sector cards */
+.a-sec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.a-sec-card{background:#111118;border:1px solid #1e1e2e;border-radius:12px;padding:18px}
+.a-sec-name{font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:12px}
+.a-sec-divider{height:1px;background:#1a1a2a;margin-bottom:12px}
+.a-sec-stat{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:8px}
+.a-sec-stat:last-child{margin-bottom:0}
+.a-sec-stat .sl{color:#9ca3af;font-size:12px}
+.a-sec-stat .sv{color:#e5e7eb;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <strong>LEGIBILITY MOCK v2</strong>
+  <button class="tbtn tb-before on" id="btn-b" onclick="tog('b')">● BEFORE (current)</button>
+  <button class="tbtn tb-after" id="btn-a" onclick="tog('a')">● AFTER (Option B)</button>
+  <span class="topbar-note">Toggle each panel independently · Scroll down to see all 5 components</span>
+</div>
+
+<div class="demo">
+
+<\!-- ═══════════ BEFORE ═══════════ -->
+<div class="wrap on" id="wrap-b">
+<div class="panel">
+
+  <div class="sec"><div class="sec-line"></div><div class="sec-label">BEFORE — current dashboard</div><div class="sec-line"></div></div>
+
+  <\!-- Nav -->
+  <div style="margin-bottom:28px">
+    <div style="font-size:10px;color:#3f3f46;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700">① Navbar</div>
+    <div class="b-nav">
+      <div class="b-logo">NIFTY <span>50</span></div>
+      <div class="b-tabs">
+        <div class="b-tab on">Overview</div><div class="b-tab">All Stocks</div>
+        <div class="b-tab">Scoring Model</div><div class="b-tab">Backtest</div><div class="b-tab">Simulation</div>
+      </div>
+      <div class="b-meta">Data: Yahoo Finance &nbsp;|&nbsp; Last updated: <span style="color:#22c55e">20 Apr, 10:30 AM</span></div>
+    </div>
+  </div>
+
+  <\!-- KPI Bar -->
+  <div style="margin-bottom:28px">
+    <div style="font-size:10px;color:#3f3f46;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700">② KPI Bar</div>
+    <div class="b-kpis">
+      <div class="b-kpi"><div class="b-kpi-lbl">Nifty 50 Index</div><div class="b-kpi-val">₹22,400</div><div class="b-kpi-sub">Live price</div></div>
+      <div class="b-kpi"><div class="b-kpi-lbl">Avg Adj P/E (Index)</div><div class="b-kpi-val">21.4×</div><div class="b-kpi-sub">42 stocks with valid P/E</div></div>
+      <div class="b-kpi"><div class="b-kpi-lbl">BUY / HOLD / AVOID</div><div class="b-kpi-val">18 / 14 / 18</div><div class="b-kpi-sub">By scoring model</div></div>
+      <div class="b-kpi"><div class="b-kpi-lbl">EPS Adjusted Stocks</div><div class="b-kpi-val">44/50</div><div class="b-kpi-sub">38 clean + 6 partial</div></div>
+      <div class="b-kpi"><div class="b-kpi-lbl">Data Freshness</div><div class="b-kpi-val" style="color:#22c55e;font-size:16px">✓ Fresh</div><div class="b-kpi-sub">Updated today</div></div>
+    </div>
+  </div>
+
+  <\!-- Table -->
+  <div style="margin-bottom:28px">
+    <div style="font-size:10px;color:#3f3f46;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700">③ All Stocks Table (19 columns, tight rows)</div>
+    <div class="b-tbl-intro">All 50 stocks ranked by composite score. Click any row to see full breakdown.</div>
+    <div class="b-tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Company</th><th>Signal</th><th>Score</th><th>Price ₹</th><th>Mkt Cap</th>
+          <th>Adj TTM EPS</th><th>EPS Qual</th><th>EPS Growth</th><th>Adj P/E</th>
+          <th>Fwd P/E (ours)</th><th>Fwd P/E (analyst)</th><th>Diverge</th>
+          <th>ROE %</th><th>D/E</th><th>Margin</th>
+          <th>6M vs Nifty</th><th>3M vs Nifty</th><th>1M vs Nifty</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="b-rank">1</span></td>
+            <td><div class="b-name">Bajaj Finance</div><div class="b-sym">BAJFINANCE</div><div class="b-sec-lbl">Financial Services</div></td>
+            <td><span class="b-sig b-sig-BUY">BUY</span></td>
+            <td><div class="b-score-wrap"><div class="b-bar-bg"><div class="b-bar-fill" style="width:78%;background:#22c55e"></div></div><span class="b-score-n">78</span></div><div class="b-chips"><span class="b-chip b-chip-f">F 38</span><span class="b-chip b-chip-v">V 14</span><span class="b-chip b-chip-m">M 26</span></div></td>
+            <td class="b-num">₹7,210</td><td class="b-num">₹4.3L Cr</td>
+            <td class="b-num">₹254</td><td><span class="b-eq b-eq-C">CLEAN</span></td>
+            <td class="b-num up">+24%</td><td class="b-num">28.4×</td>
+            <td class="b-num">23.6×</td><td class="b-num">24.1×</td><td class="b-num" style="color:#4ade80">—</td>
+            <td class="b-num up">22.3%</td><td class="b-num">0.18</td><td class="b-num up">↑</td>
+            <td class="b-num up">+8.4%</td><td class="b-num up">+3.1%</td><td class="b-num up">+1.8%</td>
+          </tr>
+          <tr>
+            <td><span class="b-rank">2</span></td>
+            <td><div class="b-name">Tata Consultancy</div><div class="b-sym">TCS</div><div class="b-sec-lbl">Information Technology</div></td>
+            <td><span class="b-sig b-sig-BUY">BUY</span></td>
+            <td><div class="b-score-wrap"><div class="b-bar-bg"><div class="b-bar-fill" style="width:72%;background:#22c55e"></div></div><span class="b-score-n">72</span></div><div class="b-chips"><span class="b-chip b-chip-f">F 35</span><span class="b-chip b-chip-v">V 12</span><span class="b-chip b-chip-m">M 25</span></div></td>
+            <td class="b-num">₹3,840</td><td class="b-num">₹13.9L Cr</td>
+            <td class="b-num">₹174</td><td><span class="b-eq b-eq-P">PARTIAL</span></td>
+            <td class="b-num up">+18%</td><td class="b-num">22.1×</td>
+            <td class="b-num">20.4×</td><td class="b-num">21.0×</td><td class="b-num">—</td>
+            <td class="b-num up">31.4%</td><td class="b-num">0.03</td><td class="b-num up">↑</td>
+            <td class="b-num up">+5.2%</td><td class="b-num dn">-0.8%</td><td class="b-num up">+2.1%</td>
+          </tr>
+          <tr>
+            <td><span class="b-rank">3</span></td>
+            <td><div class="b-name">HDFC Bank</div><div class="b-sym">HDFCBANK</div><div class="b-sec-lbl">Financial Services</div></td>
+            <td><span class="b-sig b-sig-HOLD">HOLD</span></td>
+            <td><div class="b-score-wrap"><div class="b-bar-bg"><div class="b-bar-fill" style="width:48%;background:#eab308"></div></div><span class="b-score-n">48</span></div><div class="b-chips"><span class="b-chip b-chip-f">F 28</span><span class="b-chip b-chip-v">V 8</span><span class="b-chip b-chip-m">M 12</span></div></td>
+            <td class="b-num">₹1,710</td><td class="b-num">₹12.3L Cr</td>
+            <td class="b-num">₹99</td><td><span class="b-eq b-eq-C">CLEAN</span></td>
+            <td class="b-num dn">-2.1%</td><td class="b-num">17.2×</td>
+            <td class="b-num">17.8×</td><td class="b-num">18.1×</td><td class="b-num">—</td>
+            <td class="b-num up">18.4%</td><td class="b-num">—</td><td class="b-num" style="color:#a1a1aa">→</td>
+            <td class="b-num dn">-1.2%</td><td class="b-num dn">-2.8%</td><td class="b-num dn">-1.1%</td>
+          </tr>
+          <tr>
+            <td><span class="b-rank">4</span></td>
+            <td><div class="b-name">Reliance Industries</div><div class="b-sym">RELIANCE</div><div class="b-sec-lbl">Energy</div></td>
+            <td><span class="b-sig b-sig-AVOID">AVOID</span></td>
+            <td><div class="b-score-wrap"><div class="b-bar-bg"><div class="b-bar-fill" style="width:31%;background:#ef4444"></div></div><span class="b-score-n">31</span></div><div class="b-chips"><span class="b-chip b-chip-f">F 14</span><span class="b-chip b-chip-v">V 6</span><span class="b-chip b-chip-m">M 11</span></div></td>
+            <td class="b-num">₹2,890</td><td class="b-num">₹19.5L Cr</td>
+            <td class="b-num">₹117</td><td><span class="b-eq b-eq-U">UNVERIFIED</span></td>
+            <td class="b-num dn">-5.4%</td><td class="b-num">24.6×</td>
+            <td class="b-num">25.8×</td><td class="b-num">23.1×</td><td class="b-num" style="color:#ef4444">⚠ 11%</td>
+            <td class="b-num up">12.1%</td><td class="b-num">0.34</td><td class="b-num dn">↓</td>
+            <td class="b-num dn">-3.8%</td><td class="b-num dn">-4.1%</td><td class="b-num dn">-2.2%</td>
+          </tr>
+        </tbody>
+      </table>
+      <\!-- Expand -->
+      <div class="b-expand">
+        <div class="b-xblk">
+          <div class="b-xblk-t">Score Breakdown</div>
+          <div class="b-sdr"><span class="b-sdrl">EPS Growth</span><div class="b-sdrb"><div style="width:100%;height:100%;background:#60a5fa;border-radius:2px"></div></div><span class="b-sdrv">15/15</span></div>
+          <div class="b-sdr"><span class="b-sdrl">Margin Trend</span><div class="b-sdrb"><div style="width:100%;height:100%;background:#60a5fa;border-radius:2px"></div></div><span class="b-sdrv">10/10</span></div>
+          <div class="b-sdr"><span class="b-sdrl">Return on Equity</span><div class="b-sdrb"><div style="width:70%;height:100%;background:#60a5fa;border-radius:2px"></div></div><span class="b-sdrv">7/10</span></div>
+          <div class="b-sdr"><span class="b-sdrl">Debt to Equity</span><div class="b-sdrb"><div style="width:100%;height:100%;background:#60a5fa;border-radius:2px"></div></div><span class="b-sdrv">10/10</span></div>
+          <div class="b-sdr"><span class="b-sdrl">EPS Consistency</span><div class="b-sdrb"><div style="width:60%;height:100%;background:#60a5fa;border-radius:2px"></div></div><span class="b-sdrv">3/5</span></div>
+          <div class="b-sdr"><span class="b-sdrl">P/E vs Sector</span><div class="b-sdrb"><div style="width:70%;height:100%;background:#a78bfa;border-radius:2px"></div></div><span class="b-sdrv">7/10</span></div>
+          <div class="b-sdr"><span class="b-sdrl">PEG Ratio</span><div class="b-sdrb"><div style="width:70%;height:100%;background:#a78bfa;border-radius:2px"></div></div><span class="b-sdrv">7/10</span></div>
+          <div class="b-sdr"><span class="b-sdrl">6M vs Nifty</span><div class="b-sdrb"><div style="width:100%;height:100%;background:#34d399;border-radius:2px"></div></div><span class="b-sdrv">15/15</span></div>
+          <div class="b-sdr"><span class="b-sdrl">3M vs Nifty</span><div class="b-sdrb"><div style="width:60%;height:100%;background:#34d399;border-radius:2px"></div></div><span class="b-sdrv">6/10</span></div>
+          <div class="b-sdr"><span class="b-sdrl">1M vs Nifty</span><div class="b-sdrb"><div style="width:100%;height:100%;background:#34d399;border-radius:2px"></div></div><span class="b-sdrv">5/5</span></div>
+        </div>
+        <div class="b-xblk">
+          <div class="b-xblk-t">Key Metrics</div>
+          <div class="b-xrow"><span class="l">Adj TTM EPS</span><span class="v">₹254.10</span></div>
+          <div class="b-xrow"><span class="l">EPS Quality</span><span class="v" style="color:#4ade80">CLEAN</span></div>
+          <div class="b-xrow"><span class="l">Adj TTM P/E</span><span class="v">28.4×</span></div>
+          <div class="b-xrow"><span class="l">Fwd P/E (ours)</span><span class="v">23.6×</span></div>
+          <div class="b-xrow"><span class="l">Fwd P/E (analyst)</span><span class="v">24.1×</span></div>
+          <div class="b-xrow"><span class="l">ROE</span><span class="v" style="color:#4ade80">22.3%</span></div>
+          <div class="b-xrow"><span class="l">Debt / Equity</span><span class="v">0.18</span></div>
+          <div class="b-xrow"><span class="l">Market Cap</span><span class="v">₹4,31,200 Cr</span></div>
+        </div>
+        <div class="b-xblk">
+          <div class="b-xblk-t">Quarterly EPS</div>
+          <div class="b-xrow"><span class="l">Q1 FY25</span><span class="v">₹58.4</span></div>
+          <div class="b-xrow"><span class="l">Q2 FY25</span><span class="v">₹62.1</span></div>
+          <div class="b-xrow"><span class="l">Q3 FY25</span><span class="v">₹66.8</span></div>
+          <div class="b-xrow"><span class="l">Q4 FY25</span><span class="v">₹67.2</span></div>
+          <div class="b-xrow" style="border-top:1px solid #1e1e2e;padding-top:6px;margin-top:4px"><span class="l">TTM Total</span><span class="v" style="color:#4ade80">₹254.5</span></div>
+        </div>
+        <div class="b-xblk">
+          <div class="b-xblk-t">Forward EPS</div>
+          <div class="b-xrow"><span class="l">EPS Growth Rate</span><span class="v">+24.1%</span></div>
+          <div class="b-xrow"><span class="l">Derived Fwd EPS</span><span class="v">₹315.4</span></div>
+          <div class="b-xrow"><span class="l">Analyst Fwd EPS</span><span class="v">₹308.2</span></div>
+          <div class="b-xrow"><span class="l">Divergence</span><span class="v" style="color:#4ade80">2.3% ✓</span></div>
+          <div class="b-xrow"><span class="l">Derived Fwd P/E</span><span class="v">23.6×</span></div>
+          <div class="b-xrow"><span class="l">Analyst Fwd P/E</span><span class="v">24.1×</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <\!-- Backtest KPI -->
+  <div style="margin-bottom:28px">
+    <div style="font-size:10px;color:#3f3f46;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700">④ Backtest KPIs (6 of 12 shown)</div>
+    <div class="b-bt-grid">
+      <div class="b-bt-kpi"><div class="b-bt-lbl">Portfolio Total Return</div><div class="b-bt-val" style="color:#4ade80">+84.2%</div><div class="b-bt-sub">Feb 2022 – Nov 2025</div></div>
+      <div class="b-bt-kpi"><div class="b-bt-lbl">Nifty 50 Total Return</div><div class="b-bt-val">+52.1%</div><div class="b-bt-sub">Buy &amp; hold index</div></div>
+      <div class="b-bt-kpi"><div class="b-bt-lbl">Total Spread</div><div class="b-bt-val" style="color:#4ade80">+32.1%</div><div class="b-bt-sub">Portfolio − Benchmark</div></div>
+      <div class="b-bt-kpi"><div class="b-bt-lbl">CAGR (Portfolio)</div><div class="b-bt-val">18.4%</div><div class="b-bt-sub">Annualised</div></div>
+      <div class="b-bt-kpi"><div class="b-bt-lbl">CAGR (Benchmark)</div><div class="b-bt-val">12.2%</div><div class="b-bt-sub">Nifty 50 annualised</div></div>
+      <div class="b-bt-kpi"><div class="b-bt-lbl">Annual Alpha</div><div class="b-bt-val" style="color:#4ade80">+6.2%</div><div class="b-bt-sub">Risk-adjusted excess</div></div>
+    </div>
+  </div>
+
+  <\!-- Sector cards -->
+  <div>
+    <div style="font-size:10px;color:#3f3f46;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700">⑤ Sector Cards</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+      <div class="b-xblk"><div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:8px">Financial Services</div><div class="b-xrow"><span class="l">Stocks</span><span class="v">12</span></div><div class="b-xrow"><span class="l">Avg Adj P/E</span><span class="v">18.4×</span></div><div class="b-xrow"><span class="l">Avg Score</span><span class="v" style="color:#22c55e">61</span></div></div>
+      <div class="b-xblk"><div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:8px">Information Technology</div><div class="b-xrow"><span class="l">Stocks</span><span class="v">8</span></div><div class="b-xrow"><span class="l">Avg Adj P/E</span><span class="v">22.1×</span></div><div class="b-xrow"><span class="l">Avg Score</span><span class="v" style="color:#22c55e">58</span></div></div>
+      <div class="b-xblk"><div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:8px">Energy</div><div class="b-xrow"><span class="l">Stocks</span><span class="v">6</span></div><div class="b-xrow"><span class="l">Avg Adj P/E</span><span class="v">14.2×</span></div><div class="b-xrow"><span class="l">Avg Score</span><span class="v" style="color:#eab308">44</span></div></div>
+      <div class="b-xblk"><div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:8px">Consumer Goods</div><div class="b-xrow"><span class="l">Stocks</span><span class="v">7</span></div><div class="b-xrow"><span class="l">Avg Adj P/E</span><span class="v">31.8×</span></div><div class="b-xrow"><span class="l">Avg Score</span><span class="v" style="color:#eab308">40</span></div></div>
+    </div>
+  </div>
+
+</div></div><\!-- /before -->
+
+
+<\!-- ═══════════ AFTER ═══════════ -->
+<div class="wrap" id="wrap-a">
+<div class="panel">
+
+  <div class="sec"><div class="sec-line"></div><div class="sec-label">AFTER — Option B redesign</div><div class="sec-line"></div></div>
+
+  <\!-- Nav -->
+  <div style="margin-bottom:28px">
+    <div style="font-size:10px;color:#3f3f46;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700">① Navbar <span style="color:#f97316;font-size:9px">— underline-tab style, bigger hit targets, better contrast</span></div>
+    <div class="a-nav">
+      <div class="a-logo">NIFTY <span>50</span></div>
+      <div class="a-tabs">
+        <div class="a-tab on">Overview</div><div class="a-tab">All Stocks</div>
+        <div class="a-tab">Scoring Model</div><div class="a-tab">Backtest</div><div class="a-tab">Simulation</div>
+      </div>
+      <div class="a-meta">Yahoo Finance &nbsp;·&nbsp; <span class="ok">Updated 20 Apr, 10:30 AM</span></div>
+    </div>
+  </div>
+
+  <\!-- KPI Bar -->
+  <div style="margin-bottom:28px">
+    <div style="font-size:10px;color:#3f3f46;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700">② KPI Bar <span style="color:#f97316;font-size:9px">— values 22→30px, labels 10→11px, more padding</span></div>
+    <div class="a-kpis">
+      <div class="a-kpi"><div class="a-kpi-lbl">Nifty 50 Index</div><div class="a-kpi-val">₹22,400</div><div class="a-kpi-sub">Live price</div></div>
+      <div class="a-kpi"><div class="a-kpi-lbl">Avg Adj P/E</div><div class="a-kpi-val">21.4×</div><div class="a-kpi-sub">42 stocks with valid P/E</div></div>
+      <div class="a-kpi"><div class="a-kpi-lbl">BUY / HOLD / AVOID</div><div class="a-kpi-val" style="font-size:24px">18 / 14 / 18</div><div class="a-kpi-sub">By scoring model</div></div>
+      <div class="a-kpi"><div class="a-kpi-lbl">EPS Adjusted</div><div class="a-kpi-val">44/50</div><div class="a-kpi-sub">38 clean · 6 partial</div></div>
+      <div class="a-kpi"><div class="a-kpi-lbl">Data Freshness</div><div class="a-kpi-val a-kpi-up" style="font-size:22px">✓ Fresh</div><div class="a-kpi-sub">Updated today</div></div>
+    </div>
+  </div>
+
+  <\!-- Table -->
+  <div style="margin-bottom:28px">
+    <div style="font-size:10px;color:#3f3f46;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;font-weight:700">③ All Stocks Table <span style="color:#f97316;font-size:9px">— 8 visible cols (was 19) · signal-colored left border · score hero number · taller rows · detail in expand</span></div>
+
+    <div class="a-tbl-header">
+      <div>
+        <div class="a-tbl-title">All 50 Stocks</div>
+        <div class="a-tbl-sub">Ranked by composite score · Click any row for full breakdown</div>
+      </div>
+      <div class="a-controls">
+        <input class="a-search" placeholder="Search company or symbol…" />
+        <button class="a-filter on">All 50</button>
+        <button class="a-filter">BUY</button>
+        <button class="a-filter">HOLD</button>
+        <button class="a-filter">AVOID</button>
+      </div>
+    </div>
+
+    <div class="a-tbl-wrap">
+      <div class="a-tbl-scroll">
+        <table>
+          <thead><tr>
+            <th>#</th>
+            <th>Company <span class="arr">↕</span></th>
+            <th>Signal <span class="arr">↕</span></th>
+            <th class="sorted">Score <span class="arr">↓</span></th>
+            <th>Price ₹ <span class="arr">↕</span></th>
+            <th>Adj P/E <span class="arr">↕</span></th>
+            <th>EPS Growth <span class="arr">↕</span></th>
+            <th>6M vs Nifty <span class="arr">↕</span></th>
+          </tr></thead>
+          <tbody>
+            <tr class="row-buy">
+              <td><span class="a-rank">1</span></td>
+              <td><div class="a-name">Bajaj Finance</div><div class="a-sym">BAJFINANCE · Financial Services</div></td>
+              <td><span class="a-sig a-sig-BUY">▲ BUY</span></td>
+              <td>
+                <div class="a-score-cell">
+                  <span class="a-score-n sc-buy">78</span>
+                  <div class="a-score-right">
+                    <div class="a-bar-bg"><div class="a-bar-fill" style="width:78%;background:#22c55e"></div></div>
+                    <div class="a-chips"><span class="a-chip a-chip-f">F 38</span><span class="a-chip a-chip-v">V 14</span><span class="a-chip a-chip-m">M 26</span></div>
+                  </div>
+                </div>
+              </td>
+              <td class="a-num">₹7,210</td>
+              <td class="a-num">28.4×</td>
+              <td class="a-num up">+24.1%</td>
+              <td class="a-num up">+8.4%</td>
+            </tr>
+            <tr class="row-buy">
+              <td><span class="a-rank">2</span></td>
+              <td><div class="a-name">Tata Consultancy</div><div class="a-sym">TCS · Information Technology</div></td>
+              <td><span class="a-sig a-sig-BUY">▲ BUY</span></td>
+              <td>
+                <div class="a-score-cell">
+                  <span class="a-score-n sc-buy">72</span>
+                  <div class="a-score-right">
+                    <div class="a-bar-bg"><div class="a-bar-fill" style="width:72%;background:#22c55e"></div></div>
+                    <div class="a-chips"><span class="a-chip a-chip-f">F 35</span><span class="a-chip a-chip-v">V 12</span><span class="a-chip a-chip-m">M 25</span></div>
+                  </div>
+                </div>
+              </td>
+              <td class="a-num">₹3,840</td>
+              <td class="a-num">22.1×</td>
+              <td class="a-num up">+18.6%</td>
+              <td class="a-num up">+5.2%</td>
+            </tr>
+            <tr class="row-hold">
+              <td><span class="a-rank">3</span></td>
+              <td><div class="a-name">HDFC Bank</div><div class="a-sym">HDFCBANK · Financial Services</div></td>
+              <td><span class="a-sig a-sig-HOLD">— HOLD</span></td>
+              <td>
+                <div class="a-score-cell">
+                  <span class="a-score-n sc-hold">48</span>
+                  <div class="a-score-right">
+                    <div class="a-bar-bg"><div class="a-bar-fill" style="width:48%;background:#fbbf24"></div></div>
+                    <div class="a-chips"><span class="a-chip a-chip-f">F 28</span><span class="a-chip a-chip-v">V 8</span><span class="a-chip a-chip-m">M 12</span></div>
+                  </div>
+                </div>
+              </td>
+              <td class="a-num">₹1,710</td>
+              <td class="a-num">17.2×</td>
+              <td class="a-num dn">-2.1%</td>
+              <td class="a-num dn">-1.2%</td>
+            </tr>
+            <tr class="row-avoid">
+              <td><span class="a-rank">4</span></td>
+              <td><div class="a-name">Reliance Industries</div><div class="a-sym">RELIANCE · Energy</div></td>
+              <td><span class="a-sig a-sig-AVOID">▼ AVOID</span></td>
+              <td>
+                <div class="a-score-cell">
+                  <span class="a-score-n sc-avoid">31</span>
+                  <div class="a-score-right">
+                    <div class="a-bar-bg"><div class="a-bar-fill" style="width:31%;background:#ef4444"></div></div>
+                    <div class="a-chips"><span class="a-chip a-chip-f">F 14</span><span class="a-chip a-chip-v">V 6</span><span class="a-chip a-chip-m">M 11</span></div>
+                  </div>
+                </div>
+              </td>
+              <td class="a-num">₹2,890</td>
+              <td class="a-num">24.6×</td>
+              <td class="a-num dn">-5.4%</td>
+              <td class="a-num dn">-3.8%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-hint">↔ Scroll right for more columns: EPS Quality · ROE · D/E · Margin Trend · 3M · 1M · Fwd P/E · Divergence</div>
+
+      <\!-- Expanded detail for row 1 -->
+      <div class="a-expand">
+        <div style="padding:10px 24px 0;font-size:11px;color:#4b5563;border-top:1px solid #1e1e2e">
+          ▼ Bajaj Finance — full breakdown
+        </div>
+        <div class="a-expand-inner">
+          <div class="a-xblk">
+            <div class="a-xblk-t"><span class="a-xblk-t-dot" style="background:#60a5fa"></span>Score Breakdown</div>
+            <div class="a-sdr"><span class="a-sdrl">EPS Growth</span><div class="a-sdrb"><div style="width:100%;height:100%;background:#60a5fa;border-radius:3px"></div></div><span class="a-sdrv">15/15</span></div>
+            <div class="a-sdr"><span class="a-sdrl">Margin Trend</span><div class="a-sdrb"><div style="width:100%;height:100%;background:#60a5fa;border-radius:3px"></div></div><span class="a-sdrv">10/10</span></div>
+            <div class="a-sdr"><span class="a-sdrl">Return on Equity</span><div class="a-sdrb"><div style="width:70%;height:100%;background:#60a5fa;border-radius:3px"></div></div><span class="a-sdrv">7/10</span></div>
+            <div class="a-sdr"><span class="a-sdrl">Debt to Equity</span><div class="a-sdrb"><div style="width:100%;height:100%;background:#60a5fa;border-radius:3px"></div></div><span class="a-sdrv">10/10</span></div>
+            <div class="a-sdr"><span class="a-sdrl">EPS Consistency</span><div class="a-sdrb"><div style="width:60%;height:100%;background:#60a5fa;border-radius:3px"></div></div><span class="a-sdrv">3/5</span></div>
+            <div class="a-sdr"><span class="a-sdrl">P/E vs Sector</span><div class="a-sdrb"><div style="width:70%;height:100%;background:#a78bfa;border-radius:3px"></div></div><span class="a-sdrv">7/10</span></div>
+            <div class="a-sdr"><span class="a-sdrl">PEG Ratio</span><div class="a-sdrb"><div style="width:70%;height:100%;background:#a78bfa;border-radius:3px"></div></div><span class="a-sdrv">7/10</span></div>
+            <div class="a-sdr"><span class="a-sdrl">6M vs Nifty</span><div class="a-sdrb"><div style="width:100%;height:100%;background:#34d399;border-radius:3px"></div></div><span class="a-sdrv">15/15</span></div>
+            <div class="a-sdr"><span class="a-sdrl">3M vs Nifty</span><div class="a-sdrb"><div style="width:60%;height:100%;background:#34d399;border-radius:3px"></div></div><span class="a-sdrv">6/10</span></div>
+            <div class="a-sdr"><span class="a-sdrl">1M vs Nifty</span><div class="a-sdrb"><div style="width:100%;height:100%;background:#34d399;border-radius:3px"></div></div><span class="a-sdrv">5/5</span></div>
+          </div>
+          <div class="a-xblk">
+            <div class="a-xblk-t"><span class="a-xblk-t-dot" style="background:#f97316"></span>Key Metrics</div>
+            <div class="a-xrow"><span class="l">Adj TTM EPS</span><span class="v">₹254.10</span></div>
+            <div class="a-xrow"><span class="l">EPS Quality</span><span class="v"><span class="a-eq a-eq-C">CLEAN</span></span></div>
+            <div class="a-xrow"><span class="l">Adj TTM P/E</span><span class="v">28.4×</span></div>
+            <div class="a-xrow"><span class="l">Fwd P/E (ours)</span><span class="v">23.6×</span></div>
+            <div class="a-xrow"><span class="l">Fwd P/E (analyst)</span><span class="v">24.1×</span></div>
+            <div class="a-xrow"><span class="l">EPS Divergence</span><span class="v" style="color:#4ade80">2.3% ✓</span></div>
+            <div class="a-xrow"><span class="l">ROE</span><span class="v" style="color:#4ade80">22.3%</span></div>
+            <div class="a-xrow"><span class="l">Debt / Equity</span><span class="v">0.18</span></div>
+            <div class="a-xrow"><span class="l">Market Cap</span><span class="v">₹4,31,200 Cr</span></div>
+          </div>
+          <div class="a-xblk">
+            <div class="a-xblk-t"><span class="a-xblk-t-dot" style="background:#a78bfa"></span>Quarterly EPS</div>
+            <div class="a-xrow"><span class="l">Q1 FY25</span><span class="v">₹58.4</span></div>
+            <div class="a-xrow"><span class="l">Q2 FY25</span><span class="v">₹62.1</span></div>
+            <div class="a-xrow"><span class="l">Q3 FY25</span><span class="v">₹66.8</span></div>
+            <div class="a-xrow"><span class="l">Q4 FY25</span><span class="v">₹67.2</span></div>
+            <div class="a-xrow" style="margin-top:8px;padding-top:8px;border-top:1px solid #1a1a2a"><span class="l">TTM Total</span><span class="v" style="color:#4ade80">₹254.5</span></div>
+          </div>
+          <div class="a-xblk">
+            <div class="a-xblk-t"><span class="a-xblk-t-dot" style="background:#34d399"></span>Momentum Detail</div>
+            <div class="a-xrow"><span class="l">6M vs Nifty</span><span class="v" style="color:#4ade80">+8.4%</span></div>
+            <div class="a-xrow"><span class="l">3M vs Nifty</span><span class="v" style="color:#4ade80">+3.1%</span></div>
+            <div class="a-xrow"><span class="l">1M vs Nifty</span><span class="v" style="color:#4ade80">+1.8%</span></div>
+            <div class="a-xrow"><span class="l">Margin Trend</span><span class="v" style="color:#4ade80">↑ Expanding</span></div>
+            <div class="a-xrow"><span class="l">Momentum Score</span><span class="v" style="color:#34d399">26/30</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <\!-- Backtest KPI -->
+  <div style="margin-bottom:28px">
+    <div style="font-size:10px;color:#3f3f46;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700">④ Backtest KPIs <span style="color:#f97316;font-size:9px">— labels 9→11px, values 18→24px, more padding, better contrast</span></div>
+    <div class="a-bt-grid">
+      <div class="a-bt-kpi"><div class="a-bt-lbl">Portfolio Return</div><div class="a-bt-val" style="color:#4ade80">+84.2%</div><div class="a-bt-sub">Feb 2022 – Nov 2025</div></div>
+      <div class="a-bt-kpi"><div class="a-bt-lbl">Nifty 50 Return</div><div class="a-bt-val">+52.1%</div><div class="a-bt-sub">Buy &amp; hold index</div></div>
+      <div class="a-bt-kpi"><div class="a-bt-lbl">Total Spread</div><div class="a-bt-val" style="color:#4ade80">+32.1%</div><div class="a-bt-sub">Portfolio − Benchmark</div></div>
+      <div class="a-bt-kpi"><div class="a-bt-lbl">CAGR Portfolio</div><div class="a-bt-val">18.4%</div><div class="a-bt-sub">Annualised</div></div>
+      <div class="a-bt-kpi"><div class="a-bt-lbl">CAGR Benchmark</div><div class="a-bt-val">12.2%</div><div class="a-bt-sub">Nifty 50 annualised</div></div>
+      <div class="a-bt-kpi"><div class="a-bt-lbl">Annual Alpha</div><div class="a-bt-val" style="color:#4ade80">+6.2%</div><div class="a-bt-sub">Risk-adjusted excess</div></div>
+    </div>
+  </div>
+
+  <\!-- Sector cards -->
+  <div>
+    <div style="font-size:10px;color:#3f3f46;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:700">⑤ Sector Cards <span style="color:#f97316;font-size:9px">— name 12→15px, stats 11→13px, divider for structure, more padding</span></div>
+    <div class="a-sec-grid">
+      <div class="a-sec-card">
+        <div class="a-sec-name">Financial Services</div>
+        <div class="a-sec-divider"></div>
+        <div class="a-sec-stat"><span class="sl">Stocks</span><span class="sv">12</span></div>
+        <div class="a-sec-stat"><span class="sl">Avg Adj P/E</span><span class="sv">18.4×</span></div>
+        <div class="a-sec-stat"><span class="sl">Avg Score</span><span class="sv" style="color:#4ade80">61</span></div>
+      </div>
+      <div class="a-sec-card">
+        <div class="a-sec-name">Information Technology</div>
+        <div class="a-sec-divider"></div>
+        <div class="a-sec-stat"><span class="sl">Stocks</span><span class="sv">8</span></div>
+        <div class="a-sec-stat"><span class="sl">Avg Adj P/E</span><span class="sv">22.1×</span></div>
+        <div class="a-sec-stat"><span class="sl">Avg Score</span><span class="sv" style="color:#4ade80">58</span></div>
+      </div>
+      <div class="a-sec-card">
+        <div class="a-sec-name">Energy</div>
+        <div class="a-sec-divider"></div>
+        <div class="a-sec-stat"><span class="sl">Stocks</span><span class="sv">6</span></div>
+        <div class="a-sec-stat"><span class="sl">Avg Adj P/E</span><span class="sv">14.2×</span></div>
+        <div class="a-sec-stat"><span class="sl">Avg Score</span><span class="sv" style="color:#fcd34d">44</span></div>
+      </div>
+      <div class="a-sec-card">
+        <div class="a-sec-name">Consumer Goods</div>
+        <div class="a-sec-divider"></div>
+        <div class="a-sec-stat"><span class="sl">Stocks</span><span class="sv">7</span></div>
+        <div class="a-sec-stat"><span class="sl">Avg Adj P/E</span><span class="sv">31.8×</span></div>
+        <div class="a-sec-stat"><span class="sl">Avg Score</span><span class="sv" style="color:#fcd34d">40</span></div>
+      </div>
+    </div>
+  </div>
+
+</div></div><\!-- /after -->
+</div><\!-- /demo -->
+
+<script>
+const state = {b: true, a: false};
+function tog(k) {
+  state[k] = \!state[k];
+  document.getElementById('wrap-' + k).classList.toggle('on', state[k]);
+  document.getElementById('btn-' + k).classList.toggle('active', state[k]);
+}
+// Init
+document.getElementById('btn-b').classList.add('active');
+</script>
+</body>
+</html>

@@ -20,10 +20,13 @@ A personal investment dashboard for tracking Nifty 50 stocks. Built by Naushi (n
 
 ## Tech stack
 
-- **Python** — data fetch script (`fetch_data.py`)
+- **Python** — data fetch script (`fetch_data.py`) and backtest scripts
 - **yfinance** — single data source (Yahoo Finance). NSE/nsepython was dropped — blocks cloud servers.
 - **pandas, numpy** — data processing
-- **Vanilla HTML/CSS/JS** — dashboard (no frameworks, single file)
+- **pyarrow / parquet** — backtest cache storage format
+- **bse** (BseIndiaApi) — BSE India unofficial API library, used in `enrich_eps.py` (laptop only)
+- **python-dateutil** — date parsing in `enrich_eps.py`
+- **Vanilla HTML/CSS/JS + Chart.js** — dashboard (no frameworks, single file)
 - **GitHub Actions** — daily automation (weekdays 4pm IST = 10:30 UTC)
 - **GitHub Pages** — hosting (public repo, index.html serves the dashboard)
 
@@ -39,6 +42,20 @@ A personal investment dashboard for tracking Nifty 50 stocks. Built by Naushi (n
 | `nifty_data.json` | Data output — updated daily by fetch script |
 | `.github/workflows/daily_fetch.yml` | GitHub Actions workflow |
 | `SETUP.md` | Plain English setup guide for non-developers |
+| `backtest_fetch.py` | Downloads and caches all historical data for 2022–2025 backtest (~15–20 min first run) |
+| `backtest_simulate.py` | Runs point-in-time simulation: 16 quarterly rebalances, Feb 2022–Nov 2025 |
+| `backtest_report.py` | Reads results.json, generates self-contained HTML report |
+| `build_composition.py` | Builds nifty50_historical_composition.json with historical NSE index membership |
+| `nifty50_historical_composition.json` | Historical Nifty 50 constituents at each rebalance — solves survivorship bias |
+| `enrich_eps.py` | **Laptop-only** script: fetches BSE quarterly P&L via `bse` library, extracts exceptional items, writes `eps_overrides.json` |
+| `eps_overrides.json` | BSE-sourced exceptional items data per stock per quarter — read by `fetch_data.py` when Yahoo data is missing |
+
+### Backtest directories (gitignored or large — do not commit)
+
+| Directory | Contents |
+|---|---|
+| `backtest_cache/` | `prices.parquet`, `nifty_index.parquet`, `quarterly_income/` CSVs, `balance_sheet/` CSVs, `info.json`, `fetch_log.txt` |
+| `backtest_results/` | `results.json`, `trades.csv`, `nav.csv`, `simulate_log.txt`, `report.html` |
 
 ---
 
@@ -106,6 +123,114 @@ https://naushimathur.github.io/Nifty-Dashboard/
 
 ---
 
+## Dashboard tabs (dashboard.html — ~1450 lines)
+
+The dashboard is a single-file vanilla HTML/CSS/JS app using Chart.js (loaded from CDN). It has 5 tabs:
+
+1. **Overview** — KPI bar (Nifty index price, avg P/E, BUY/HOLD/AVOID counts, EPS adjusted count, data freshness), warnings panel, Top 25 vs Bottom 25 split panel, P/E gauge with contextual description, sector cards, EPS quality data panel
+2. **All Stocks** — sortable/filterable table with signal chip, score bar + F/V/M breakdown chips, EPS, dual forward P/E, divergence flag, ROE, D/E, margin trend, 6M/3M/1M relative returns. Click any row to expand full score breakdown + quarterly EPS detail + forward EPS + key metrics
+3. **Scoring Model** — static explanation of the 3-block model with visual bar weights
+4. **Backtest** — reads `backtest_results/results.json` via fetch(). Shows NAV chart (portfolio vs Nifty 50 buy-and-hold), quarterly spread bar chart, per-quarter table with expandable pick list, full KPI grid (total return, CAGR, alpha, Sharpe, beta, hit rate, W/L record). Shows empty state if results.json not present
+5. **Simulation** — shows current top-25 prediction locked in April 18, 2026. Results due April 2027
+
+The dashboard loads `nifty_data.json` for the live data tabs and `backtest_results/results.json` for the backtest tab. Both require an HTTP server — file:// protocol won't work due to browser security.
+
+---
+
+## Backtest infrastructure
+
+### Purpose
+Point-in-time simulation of whether the scoring model would have beaten the Nifty 50 index from Feb 2022 to Nov 2025, across 16 quarterly rebalances. Designed to avoid look-ahead bias and survivorship bias.
+
+### How to run (in order)
+
+```bash
+# Step 1 — build historical composition (run once)
+py build_composition.py
+
+# Step 2 — download all historical data (run once, ~15-20 min)
+py backtest_fetch.py
+
+# Step 3 — run simulation
+py backtest_simulate.py
+
+# Step 4 — generate HTML report
+py backtest_report.py
+# → opens backtest_results/report.html
+```
+
+### Key assumptions (hardcoded in backtest_simulate.py — document any changes)
+
+| Assumption | Value | Why |
+|---|---|---|
+| Transaction cost | 0.20% per side | Discount broker (India) estimate |
+| Risk-free rate | 7% annual | ~10y G-Sec rate over period |
+| India tax rate | 25% | Same as live scoring model |
+| Initial capital | ₹10,00,000 | Notional — only affects absolute P&L |
+| Top N | 25 | Matches live model |
+| Fundamental lag | 45 days | Conservative: Q end → results publication ~30–45 days |
+
+### Survivorship bias handling
+
+`nifty50_historical_composition.json` contains the actual Nifty 50 membership at each rebalance date, built from NSE reconstitution announcements. Historical changes tracked:
+
+- 2022-03-31: IOC out, APOLLOHOSP in
+- 2022-09-30: SHREECEM out, ADANIENT in
+- 2023-07-13: HDFC out (merger with HDFCBANK), LTIM in
+- 2024-03-28: UPL out, SHRIRAMFIN in
+- 2024-09-30: DIVISLAB + LTIM out, TRENT + BEL in
+- 2025-03-28: BPCL + BRITANNIA out, JIOFIN + ZOMATO in
+- 2025-09-30: HEROMOTOCO + INDUSINDBK out, INDIGO + MAXHEALTH in
+
+The backtest fetches ~60 tickers total (all stocks that were ever constituents) to ensure no survivorship bias.
+
+### Backtest output fields (results.json summary)
+
+Key fields: `total_return_pct`, `total_benchmark_return_pct`, `spread_pct`, `annual_return_pct`, `annual_benchmark_return_pct`, `annual_alpha_pct`, `sharpe_portfolio`, `sharpe_benchmark`, `beta`, `tracking_error_annual_pct`, `overall_hit_rate`, `num_quarters`, `years_simulated`, `final_portfolio_value`, `initial_capital`
+
+Per-quarter fields: `nominal_date`, `execution_day`, `return_pct`, `nifty_return_pct`, `spread_pct`, `hit_rate`, `portfolio_value_post_rebalance`, `top_25` list
+
+---
+
+## BSE Exceptional Items Enrichment (hybrid workflow)
+
+### Why it exists
+Yahoo Finance often lacks exceptional items data for Indian companies, causing most stocks to be PARTIAL or UNVERIFIED quality. BSE India publishes quarterly P&L filings with explicit "Exceptional Items" rows via their API — but the API blocks cloud/GitHub Actions IPs (403 Forbidden). Solution: run enrichment manually on laptop once per quarter.
+
+### Files involved
+- `enrich_eps.py` — laptop-only enrichment script
+- `eps_overrides.json` — output file, committed to repo and read by `fetch_data.py`
+
+### How to run (quarterly, after results season ends)
+```bash
+pip install bse python-dateutil   # one-time
+py enrich_eps.py
+# → writes eps_overrides.json
+
+git add eps_overrides.json
+git commit -m "Quarterly EPS enrichment — May 2026"
+git push
+```
+
+### How it integrates with fetch_data.py
+- On startup, `fetch_data.py` loads `eps_overrides.json` into `_EPS_OVERRIDES` dict
+- In `_clean_one_quarter()`, if Yahoo has no exceptional items for a quarter, it checks `_EPS_OVERRIDES[ticker][quarter_date]`
+- If an override value exists, it's used for the EPS adjustment (same formula: remove exceptional + add back 25% tax shield)
+- The `detail` dict for each quarter now includes `"exceptional_source"`: `"yahoo"`, `"bse_override"`, or `None`
+- The summary block in `nifty_data.json` includes `"bse_enriched_count"` — how many stocks used at least one BSE override
+
+### When to run
+Run `enrich_eps.py` once per quarter, ideally:
+- Mid-February (after Q3 results season)
+- Mid-May (after Q4/full-year results season)
+- Mid-August (after Q1 results season)
+- Mid-November (after Q2 results season)
+
+### NSE → BSE scrip code mapping
+`enrich_eps.py` has a hardcoded `NSE_TO_BSE` dict. If the Nifty 50 composition changes (new stock added), look up the BSE scrip code at bseindia.com and add it to that dict.
+
+---
+
 ## Known issues / limitations
 
 - **yfinance on cloud**: Yahoo occasionally rate-limits GitHub Actions IPs. Solution: 2-second delay between stock fetches + retry logic already in script.
@@ -113,17 +238,23 @@ https://naushimathur.github.io/Nifty-Dashboard/
 - **EPS quality**: Most stocks return PARTIAL (not CLEAN) because Yahoo doesn't always have both exceptional items AND minority interest. This is expected.
 - **JSON truncation**: If fetch_data.py is interrupted mid-run, nifty_data.json gets truncated. Solution: re-run the script.
 - **Weekend/holiday detection**: Script checks `NSE_HOLIDAYS_2026` dict + weekday check. Update holidays annually.
+- **Backtest survivorship bias**: Historical composition is based on announced reconstitution dates. Pre-announcement price run-ups are not captured.
+- **yfinance 1.3.0 multi-level columns**: Fixed in fetch_data.py via `get_close_series()` helper that handles both flat and `(field, ticker)` multi-level DataFrame columns.
 
 ---
 
 ## What's NOT built yet (next sessions)
 
 1. **GitHub Actions testing** — workflow file exists but hasn't been triggered and verified on GitHub yet
-2. **Backtesting engine** — point-in-time historical simulation. **Use Opus for this session** — logic is complex and bugs here cause false confidence.
-3. **Simulation tracker** — first prediction locked April 18 2026, results due April 2027. Tab exists but needs result-recording logic.
-4. **Sharpe ratio / alpha** — evaluation metrics for simulation tab
+2. **Backtesting — push results to GitHub** — backtest_results/results.json needs to be committed so the Backtest tab renders on the live dashboard
+3. **Simulation tracker result-recording** — first prediction locked April 18 2026, results due April 2027. Tab exists but result-recording logic not built yet
+4. **Sharpe ratio / alpha** — already computed in backtest; needs wiring into the simulation tab as results come in
 5. **Promoter holding** — manual quarterly input feature
 6. **Nifty 500 expansion** — future, after Nifty 50 is stable
+7. **BSE enrichment — first run** — `enrich_eps.py` is built but hasn't been run yet. Run it on laptop and push `eps_overrides.json` to the repo.
+8. **Change 1 (EPS source flag in dashboard)** — `exceptional_source` field now in `eps_details` per quarter; dashboard doesn't yet display whether data came from Yahoo or BSE override
+9. **Change 2 (1M → 12M momentum)** — flagged in the Change Log doc; not yet implemented in fetch_data.py or scoring engine
+10. **Change 3 (divergence news deep-link)** — flagged in the Change Log doc; not yet implemented in dashboard.html
 
 ---
 
@@ -131,7 +262,7 @@ https://naushimathur.github.io/Nifty-Dashboard/
 
 ```bash
 # Install dependencies (one time)
-py -m pip install yfinance pandas numpy
+py -m pip install yfinance pandas numpy pyarrow
 
 # Fetch data (force run on weekends for testing)
 py -c "import fetch_data; fetch_data.is_market_holiday = lambda: False; fetch_data.main()"
@@ -156,4 +287,4 @@ This is for personal informed investment — not advice to others.
 
 ---
 
-*Last updated: April 18, 2026*
+*Last updated: April 25, 2026*

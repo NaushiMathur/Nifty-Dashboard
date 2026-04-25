@@ -1,0 +1,420 @@
+{
+  "generated_at": "2026-04-25T14:20:03.955350",
+  "description": "BSE-sourced exceptional items per stock per quarter. Run enrich_eps.py on laptop to regenerate. Merged into fetch_data.py when Yahoo data is missing.",
+  "overrides": {
+    "TATAMOTORS": {
+      "scrip_code": "500570",
+      "updated_at": "2026-04-25T14:18:48.925130",
+      "eps_quality_at_fetch": "UNVERIFIED",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "ZOMATO": {
+      "scrip_code": "543320",
+      "updated_at": "2026-04-25T14:18:50.521517",
+      "eps_quality_at_fetch": "UNVERIFIED",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "TATASTEEL": {
+      "scrip_code": "500470",
+      "updated_at": "2026-04-25T14:18:52.123247",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "ONGC": {
+      "scrip_code": "500312",
+      "updated_at": "2026-04-25T14:18:53.711675",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "ADANIPORTS": {
+      "scrip_code": "532921",
+      "updated_at": "2026-04-25T14:18:55.346899",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "BEL": {
+      "scrip_code": "500049",
+      "updated_at": "2026-04-25T14:18:56.951386",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "HINDALCO": {
+      "scrip_code": "500440",
+      "updated_at": "2026-04-25T14:18:58.546000",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "TITAN": {
+      "scrip_code": "500114",
+      "updated_at": "2026-04-25T14:19:00.323862",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "JSWSTEEL": {
+      "scrip_code": "500228",
+      "updated_at": "2026-04-25T14:19:01.921505",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "HCLTECH": {
+      "scrip_code": "532281",
+      "updated_at": "2026-04-25T14:19:03.478782",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-03-26": 0.0,
+        "2026-12-25": 0.0
+      }
+    },
+    "POWERGRID": {
+      "scrip_code": "532898",
+      "updated_at": "2026-04-25T14:19:05.081494",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "ULTRACEMCO": {
+      "scrip_code": "532538",
+      "updated_at": "2026-04-25T14:19:06.679858",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "COALINDIA": {
+      "scrip_code": "533278",
+      "updated_at": "2026-04-25T14:19:08.255953",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "LT": {
+      "scrip_code": "500510",
+      "updated_at": "2026-04-25T14:19:09.786970",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "NTPC": {
+      "scrip_code": "532555",
+      "updated_at": "2026-04-25T14:19:11.386478",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "AXISBANK": {
+      "scrip_code": "532215",
+      "updated_at": "2026-04-25T14:19:13.234799",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "GRASIM": {
+      "scrip_code": "500300",
+      "updated_at": "2026-04-25T14:19:14.820507",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "BAJAJ-AUTO": {
+      "scrip_code": "532977",
+      "updated_at": "2026-04-25T14:19:16.410352",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "SBIN": {
+      "scrip_code": "500112",
+      "updated_at": "2026-04-25T14:19:18.038278",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "EICHERMOT": {
+      "scrip_code": "505200",
+      "updated_at": "2026-04-25T14:19:19.661462",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "BHARTIARTL": {
+      "scrip_code": "532454",
+      "updated_at": "2026-04-25T14:19:21.269412",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "ICICIBANK": {
+      "scrip_code": "532174",
+      "updated_at": "2026-04-25T14:19:22.899395",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "MARUTI": {
+      "scrip_code": "532500",
+      "updated_at": "2026-04-25T14:19:24.500684",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "SHRIRAMFIN": {
+      "scrip_code": "511218",
+      "updated_at": "2026-04-25T14:19:26.242104",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-03-26": 0.0,
+        "2026-12-25": 0.0
+      }
+    },
+    "ITC": {
+      "scrip_code": "500875",
+      "updated_at": "2026-04-25T14:19:27.777686",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "BAJAJFINSV": {
+      "scrip_code": "532978",
+      "updated_at": "2026-04-25T14:19:29.891402",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "M&M": {
+      "scrip_code": "500520",
+      "updated_at": "2026-04-25T14:19:31.500567",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "RELIANCE": {
+      "scrip_code": "500325",
+      "updated_at": "2026-04-25T14:19:33.114930",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-03-26": 0.0,
+        "2026-12-25": 0.0
+      }
+    },
+    "TECHM": {
+      "scrip_code": "532755",
+      "updated_at": "2026-04-25T14:19:34.721415",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-03-26": 0.0,
+        "2026-12-25": 0.0
+      }
+    },
+    "TCS": {
+      "scrip_code": "532540",
+      "updated_at": "2026-04-25T14:19:36.357240",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-03-26": 0.0,
+        "2026-12-25": 0.0
+      }
+    },
+    "NESTLEIND": {
+      "scrip_code": "500790",
+      "updated_at": "2026-04-25T14:19:37.984749",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-03-26": 0.0,
+        "2026-12-25": 0.0
+      }
+    },
+    "HINDUNILVR": {
+      "scrip_code": "500696",
+      "updated_at": "2026-04-25T14:19:40.335111",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "DRREDDY": {
+      "scrip_code": "500124",
+      "updated_at": "2026-04-25T14:19:41.951716",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "APOLLOHOSP": {
+      "scrip_code": "508869",
+      "updated_at": "2026-04-25T14:19:43.569597",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "BAJFINANCE": {
+      "scrip_code": "500034",
+      "updated_at": "2026-04-25T14:19:45.653831",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "KOTAKBANK": {
+      "scrip_code": "500247",
+      "updated_at": "2026-04-25T14:19:47.273423",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "SUNPHARMA": {
+      "scrip_code": "524715",
+      "updated_at": "2026-04-25T14:19:48.888597",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "HDFCBANK": {
+      "scrip_code": "500180",
+      "updated_at": "2026-04-25T14:19:50.487681",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "ASIANPAINT": {
+      "scrip_code": "500820",
+      "updated_at": "2026-04-25T14:19:52.116211",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "TRENT": {
+      "scrip_code": "500251",
+      "updated_at": "2026-04-25T14:19:54.293871",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-03-26": 0.0,
+        "2026-12-25": 0.0
+      }
+    },
+    "INDIGO": {
+      "scrip_code": "521064",
+      "updated_at": "2026-04-25T14:19:55.913704",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "MAXHEALTH": {
+      "scrip_code": "543220",
+      "updated_at": "2026-04-25T14:19:57.491356",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "ADANIENT": {
+      "scrip_code": "512599",
+      "updated_at": "2026-04-25T14:19:59.106130",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "WIPRO": {
+      "scrip_code": "507685",
+      "updated_at": "2026-04-25T14:20:00.744448",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-03-26": 0.0,
+        "2026-12-25": 0.0
+      }
+    },
+    "CIPLA": {
+      "scrip_code": "500087",
+      "updated_at": "2026-04-25T14:20:02.370789",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    },
+    "JIOFIN": {
+      "scrip_code": "543260",
+      "updated_at": "2026-04-25T14:20:03.951579",
+      "eps_quality_at_fetch": "PARTIAL",
+      "exceptional_items_cr": {
+        "2026-12-25": 0.0,
+        "2026-09-25": 0.0
+      }
+    }
+  }
+}
