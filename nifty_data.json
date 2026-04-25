@@ -1,6 +1,6 @@
 {
   "status": "ok",
-  "generated_at": "2026-04-25T23:22:27.710740",
+  "generated_at": "2026-04-25T23:36:53.458658",
   "index_price": 23897.95,
   "stocks": [
     {
@@ -104,7 +104,7 @@
       "rel_return_3m": 17.89,
       "rel_return_6m": 25.93,
       "sector_avg_pe": 51.77,
-      "fetched_at": "2026-04-25T23:21:29.274123",
+      "fetched_at": "2026-04-25T23:35:54.660268",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -275,7 +275,7 @@
       "rel_return_3m": 24.32,
       "rel_return_6m": 26.33,
       "sector_avg_pe": 45.23,
-      "fetched_at": "2026-04-25T23:21:03.530991",
+      "fetched_at": "2026-04-25T23:35:25.243212",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -446,7 +446,7 @@
       "rel_return_3m": 17.74,
       "rel_return_6m": 17.57,
       "sector_avg_pe": 34.68,
-      "fetched_at": "2026-04-25T23:20:43.125748",
+      "fetched_at": "2026-04-25T23:35:03.373083",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -617,7 +617,7 @@
       "rel_return_3m": 13.14,
       "rel_return_6m": 12.63,
       "sector_avg_pe": 51.77,
-      "fetched_at": "2026-04-25T23:20:56.493477",
+      "fetched_at": "2026-04-25T23:35:17.544462",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -788,7 +788,7 @@
       "rel_return_3m": 13.77,
       "rel_return_6m": 13.04,
       "sector_avg_pe": 34.68,
-      "fetched_at": "2026-04-25T23:21:57.896572",
+      "fetched_at": "2026-04-25T23:36:23.570834",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -959,7 +959,7 @@
       "rel_return_3m": 11.36,
       "rel_return_6m": 29.96,
       "sector_avg_pe": 48.44,
-      "fetched_at": "2026-04-25T23:20:26.762481",
+      "fetched_at": "2026-04-25T23:34:46.115613",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -1130,7 +1130,7 @@
       "rel_return_3m": 16.62,
       "rel_return_6m": 40.55,
       "sector_avg_pe": 51.77,
-      "fetched_at": "2026-04-25T23:21:25.792044",
+      "fetched_at": "2026-04-25T23:35:51.039940",
       "scores": {
         "eps_growth": {
           "score": 12,
@@ -1301,7 +1301,7 @@
       "rel_return_3m": 9.97,
       "rel_return_6m": 58.09,
       "sector_avg_pe": 41.77,
-      "fetched_at": "2026-04-25T23:22:01.459526",
+      "fetched_at": "2026-04-25T23:36:27.231286",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -1472,7 +1472,7 @@
       "rel_return_3m": 4.79,
       "rel_return_6m": 2.8,
       "sector_avg_pe": 51.77,
-      "fetched_at": "2026-04-25T23:20:46.716285",
+      "fetched_at": "2026-04-25T23:35:06.673161",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -1643,7 +1643,7 @@
       "rel_return_3m": 30.73,
       "rel_return_6m": 17.61,
       "sector_avg_pe": 18.43,
-      "fetched_at": "2026-04-25T23:21:10.113164",
+      "fetched_at": "2026-04-25T23:35:33.004347",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -1814,7 +1814,7 @@
       "rel_return_3m": 22.87,
       "rel_return_6m": 25.3,
       "sector_avg_pe": 18.43,
-      "fetched_at": "2026-04-25T23:21:06.882532",
+      "fetched_at": "2026-04-25T23:35:29.466050",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -1985,7 +1985,7 @@
       "rel_return_3m": 13.79,
       "rel_return_6m": 28.52,
       "sector_avg_pe": 45.23,
-      "fetched_at": "2026-04-25T23:21:13.275764",
+      "fetched_at": "2026-04-25T23:35:36.542917",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -2156,7 +2156,7 @@
       "rel_return_3m": 10.73,
       "rel_return_6m": 11.19,
       "sector_avg_pe": 34.68,
-      "fetched_at": "2026-04-25T23:20:10.078255",
+      "fetched_at": "2026-04-25T23:34:29.860441",
       "scores": {
         "eps_growth": {
           "score": 12,
@@ -2321,7 +2321,7 @@
       "rel_return_3m": 13.96,
       "rel_return_6m": 30.13,
       "sector_avg_pe": 41.77,
-      "fetched_at": "2026-04-25T23:20:00.106266",
+      "fetched_at": "2026-04-25T23:34:20.523334",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -2492,7 +2492,7 @@
       "rel_return_3m": 12.06,
       "rel_return_6m": 20.82,
       "sector_avg_pe": 41.77,
-      "fetched_at": "2026-04-25T23:20:16.650256",
+      "fetched_at": "2026-04-25T23:34:36.241745",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -2663,7 +2663,7 @@
       "rel_return_3m": 6.85,
       "rel_return_6m": 12.14,
       "sector_avg_pe": 48.44,
-      "fetched_at": "2026-04-25T23:21:32.498532",
+      "fetched_at": "2026-04-25T23:35:58.150274",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -2834,7 +2834,7 @@
       "rel_return_3m": -3.39,
       "rel_return_6m": -1.36,
       "sector_avg_pe": 34.59,
-      "fetched_at": "2026-04-25T23:19:50.730678",
+      "fetched_at": "2026-04-25T23:34:10.935265",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -3005,7 +3005,7 @@
       "rel_return_3m": 0.39,
       "rel_return_6m": 1.18,
       "sector_avg_pe": 41.77,
-      "fetched_at": "2026-04-25T23:19:54.049112",
+      "fetched_at": "2026-04-25T23:34:14.085498",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -3176,7 +3176,7 @@
       "rel_return_3m": -12.33,
       "rel_return_6m": -14.68,
       "sector_avg_pe": 48.44,
-      "fetched_at": "2026-04-25T23:20:20.085887",
+      "fetched_at": "2026-04-25T23:34:39.457282",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -3347,7 +3347,7 @@
       "rel_return_3m": 16.21,
       "rel_return_6m": 24.23,
       "sector_avg_pe": 56.64,
-      "fetched_at": "2026-04-25T23:20:53.370439",
+      "fetched_at": "2026-04-25T23:35:13.531761",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -3518,7 +3518,7 @@
       "rel_return_3m": 5.78,
       "rel_return_6m": -2.15,
       "sector_avg_pe": 56.64,
-      "fetched_at": "2026-04-25T23:20:03.267829",
+      "fetched_at": "2026-04-25T23:34:23.859456",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -3689,7 +3689,7 @@
       "rel_return_3m": 16.17,
       "rel_return_6m": -3.29,
       "sector_avg_pe": 48.44,
-      "fetched_at": "2026-04-25T23:21:53.589307",
+      "fetched_at": "2026-04-25T23:36:20.083582",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -3860,7 +3860,7 @@
       "rel_return_3m": -1.12,
       "rel_return_6m": -18.45,
       "sector_avg_pe": 56.64,
-      "fetched_at": "2026-04-25T23:20:07.014461",
+      "fetched_at": "2026-04-25T23:34:26.917331",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -4031,7 +4031,7 @@
       "rel_return_3m": 3.54,
       "rel_return_6m": 7.2,
       "sector_avg_pe": 48.44,
-      "fetched_at": "2026-04-25T23:21:46.640032",
+      "fetched_at": "2026-04-25T23:36:13.008863",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -4202,7 +4202,7 @@
       "rel_return_3m": -2.09,
       "rel_return_6m": 1.2,
       "sector_avg_pe": 45.23,
-      "fetched_at": "2026-04-25T23:19:40.306975",
+      "fetched_at": "2026-04-25T23:34:01.495472",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -4367,7 +4367,7 @@
       "rel_return_3m": -19.08,
       "rel_return_6m": -11.65,
       "sector_avg_pe": 18.43,
-      "fetched_at": "2026-04-25T23:20:33.281104",
+      "fetched_at": "2026-04-25T23:34:53.376050",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -4538,7 +4538,7 @@
       "rel_return_3m": 13.36,
       "rel_return_6m": 5.9,
       "sector_avg_pe": 43.54,
-      "fetched_at": "2026-04-25T23:21:50.202967",
+      "fetched_at": "2026-04-25T23:36:16.577947",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -4709,7 +4709,7 @@
       "rel_return_3m": 17.9,
       "rel_return_6m": 9.27,
       "sector_avg_pe": 43.54,
-      "fetched_at": "2026-04-25T23:21:42.773265",
+      "fetched_at": "2026-04-25T23:36:09.373655",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -4880,7 +4880,7 @@
       "rel_return_3m": -7.59,
       "rel_return_6m": -0.7,
       "sector_avg_pe": 18.43,
-      "fetched_at": "2026-04-25T23:21:22.665164",
+      "fetched_at": "2026-04-25T23:35:47.389960",
       "scores": {
         "eps_growth": {
           "score": 12,
@@ -5051,7 +5051,7 @@
       "rel_return_3m": 7.11,
       "rel_return_6m": 9.32,
       "sector_avg_pe": 56.64,
-      "fetched_at": "2026-04-25T23:22:05.076003",
+      "fetched_at": "2026-04-25T23:36:30.951151",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -5222,7 +5222,7 @@
       "rel_return_3m": -9.85,
       "rel_return_6m": -6.96,
       "sector_avg_pe": 48.44,
-      "fetched_at": "2026-04-25T23:21:16.401827",
+      "fetched_at": "2026-04-25T23:35:40.145003",
       "scores": {
         "eps_growth": {
           "score": 15,
@@ -5393,7 +5393,7 @@
       "rel_return_3m": -4.61,
       "rel_return_6m": -6.55,
       "sector_avg_pe": 41.77,
-      "fetched_at": "2026-04-25T23:21:19.635841",
+      "fetched_at": "2026-04-25T23:35:43.615832",
       "scores": {
         "eps_growth": {
           "score": 12,
@@ -5564,7 +5564,7 @@
       "rel_return_3m": 4.87,
       "rel_return_6m": 2.55,
       "sector_avg_pe": 51.77,
-      "fetched_at": "2026-04-25T23:21:35.732025",
+      "fetched_at": "2026-04-25T23:36:01.549791",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -5735,7 +5735,7 @@
       "rel_return_3m": 4.31,
       "rel_return_6m": -4.89,
       "sector_avg_pe": 41.77,
-      "fetched_at": "2026-04-25T23:20:30.086970",
+      "fetched_at": "2026-04-25T23:34:49.589438",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -5906,7 +5906,7 @@
       "rel_return_3m": -16.67,
       "rel_return_6m": -14.01,
       "sector_avg_pe": 18.43,
-      "fetched_at": "2026-04-25T23:19:44.164817",
+      "fetched_at": "2026-04-25T23:34:04.562052",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -6071,7 +6071,7 @@
       "rel_return_3m": -5.02,
       "rel_return_6m": -8.66,
       "sector_avg_pe": 41.77,
-      "fetched_at": "2026-04-25T23:20:13.531755",
+      "fetched_at": "2026-04-25T23:34:32.971998",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -6242,7 +6242,7 @@
       "rel_return_3m": -4.79,
       "rel_return_6m": 11.46,
       "sector_avg_pe": 51.77,
-      "fetched_at": "2026-04-25T23:20:36.454052",
+      "fetched_at": "2026-04-25T23:34:56.565999",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -6413,7 +6413,7 @@
       "rel_return_3m": 2.79,
       "rel_return_6m": 2.71,
       "sector_avg_pe": 43.54,
-      "fetched_at": "2026-04-25T23:20:23.337995",
+      "fetched_at": "2026-04-25T23:34:42.577042",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -6584,7 +6584,7 @@
       "rel_return_3m": -7.49,
       "rel_return_6m": 2.94,
       "sector_avg_pe": 41.77,
-      "fetched_at": "2026-04-25T23:22:08.399948",
+      "fetched_at": "2026-04-25T23:36:34.804502",
       "scores": {
         "eps_growth": {
           "score": 12,
@@ -6755,7 +6755,7 @@
       "rel_return_3m": -8.3,
       "rel_return_6m": -14.89,
       "sector_avg_pe": 41.77,
-      "fetched_at": "2026-04-25T23:19:47.668029",
+      "fetched_at": "2026-04-25T23:34:07.694188",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -6926,7 +6926,7 @@
       "rel_return_3m": 3.58,
       "rel_return_6m": -8.48,
       "sector_avg_pe": 43.54,
-      "fetched_at": "2026-04-25T23:22:25.680095",
+      "fetched_at": "2026-04-25T23:36:51.437590",
       "scores": {
         "eps_growth": {
           "score": 12,
@@ -7097,7 +7097,7 @@
       "rel_return_3m": -13.97,
       "rel_return_6m": -16.19,
       "sector_avg_pe": 41.77,
-      "fetched_at": "2026-04-25T23:22:11.890927",
+      "fetched_at": "2026-04-25T23:36:38.260031",
       "scores": {
         "eps_growth": {
           "score": 9,
@@ -7262,7 +7262,7 @@
       "rel_return_3m": -14.51,
       "rel_return_6m": -12.67,
       "sector_avg_pe": 18.43,
-      "fetched_at": "2026-04-25T23:20:50.231386",
+      "fetched_at": "2026-04-25T23:35:10.109655",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -7433,7 +7433,7 @@
       "rel_return_3m": 2.46,
       "rel_return_6m": -16.03,
       "sector_avg_pe": 34.68,
-      "fetched_at": "2026-04-25T23:22:22.110450",
+      "fetched_at": "2026-04-25T23:36:48.410753",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -7604,7 +7604,7 @@
       "rel_return_3m": -20.94,
       "rel_return_6m": -17.52,
       "sector_avg_pe": 18.43,
-      "fetched_at": "2026-04-25T23:19:57.134942",
+      "fetched_at": "2026-04-25T23:34:17.358137",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -7769,7 +7769,7 @@
       "rel_return_3m": 13.13,
       "rel_return_6m": -5.22,
       "sector_avg_pe": 45.23,
-      "fetched_at": "2026-04-25T23:20:39.539529",
+      "fetched_at": "2026-04-25T23:34:59.908696",
       "scores": {
         "eps_growth": {
           "score": 5,
@@ -7940,7 +7940,7 @@
       "rel_return_3m": -2.83,
       "rel_return_6m": -11.98,
       "sector_avg_pe": 43.54,
-      "fetched_at": "2026-04-25T23:21:39.295548",
+      "fetched_at": "2026-04-25T23:36:05.775274",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -8111,7 +8111,7 @@
       "rel_return_3m": -7.49,
       "rel_return_6m": -14.95,
       "sector_avg_pe": 41.77,
-      "fetched_at": "2026-04-25T23:22:15.294360",
+      "fetched_at": "2026-04-25T23:36:41.659138",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -8231,7 +8231,7 @@
       "rel_return_3m": null,
       "rel_return_6m": null,
       "sector_avg_pe": null,
-      "fetched_at": "2026-04-25T23:21:00.853425",
+      "fetched_at": "2026-04-25T23:35:22.172397",
       "scores": {
         "eps_growth": {
           "score": 0,
@@ -8351,7 +8351,7 @@
       "rel_return_3m": null,
       "rel_return_6m": null,
       "sector_avg_pe": null,
-      "fetched_at": "2026-04-25T23:22:19.123718",
+      "fetched_at": "2026-04-25T23:36:45.687202",
       "scores": {
         "eps_growth": {
           "score": 0,
