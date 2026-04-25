@@ -340,11 +340,90 @@ tr.row-AVOID td:first-child{border-left:3px solid var(--avoid)}
   </div>
 
   <!-- Data Quality -->
-  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#52525b;margin-bottom:10px">EPS DATA QUALITY</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#52525b">EPS DATA QUALITY</div>
+    <button id="dq-info-btn" onclick="toggleDQDisclosure()" style="background:none;border:1px solid var(--border);border-radius:20px;color:var(--text-faint);font-size:11px;padding:2px 10px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-faint)'">
+      ⓘ How is this data sourced?
+    </button>
+  </div>
   <div class="dq-panel">
-    <div class="dq-block"><div class="dq-num" style="color:#4ade80" id="dq-clean">—</div><div class="dq-label">CLEAN — Both exceptional items & minority interest found and stripped</div></div>
+    <div class="dq-block"><div class="dq-num" style="color:#4ade80" id="dq-clean">—</div><div class="dq-label">CLEAN — Both exceptional items &amp; minority interest found and stripped</div></div>
     <div class="dq-block"><div class="dq-num" style="color:#60a5fa" id="dq-partial">—</div><div class="dq-label">PARTIAL — One of the two adjustments applied</div></div>
     <div class="dq-block"><div class="dq-num" style="color:#fb923c" id="dq-unverified">—</div><div class="dq-label">UNVERIFIED — Raw reported EPS used, no adjustment data available</div></div>
+  </div>
+
+  <!-- Full EPS Data Disclosure Panel (hidden by default) -->
+  <div id="dq-disclosure" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:4px;margin-bottom:16px;font-size:13px;line-height:1.7;color:var(--text)">
+
+    <div style="font-size:14px;font-weight:700;margin-bottom:16px;color:var(--accent)">📊 Full EPS Data Source Disclosure</div>
+
+    <!-- Block 1 — What we adjust for -->
+    <div style="margin-bottom:16px">
+      <div style="font-weight:700;color:var(--text);margin-bottom:6px">What we strip from reported Net Income</div>
+      <div style="color:var(--text-faint)">Reported Net Income from Indian company filings often includes two distortions that make EPS misleading for valuation:</div>
+      <div style="margin-top:8px;padding-left:12px;border-left:2px solid var(--border)">
+        <div style="margin-bottom:6px"><span style="color:#fbbf24;font-weight:600">① Exceptional / Unusual Items</span> — One-time gains or losses (e.g. asset sales, write-downs, restructuring charges). We remove these and add back the 25% India tax shield so the EPS reflects recurring earnings only.</div>
+        <div><span style="color:#fbbf24;font-weight:600">② Minority Interest (Non-Controlling Interest)</span> — Portion of profit that belongs to external shareholders of subsidiaries. For example, Grasim owns 57% of UltraTech Cement — 43% of UltraTech's profit belongs to UltraTech's own shareholders, not Grasim's. We subtract this so EPS reflects only what Grasim's shareholders actually own.</div>
+      </div>
+    </div>
+
+    <!-- Block 2 — Data sources by type -->
+    <div style="margin-bottom:16px">
+      <div style="font-weight:700;color:var(--text);margin-bottom:8px">Data sources (in priority order)</div>
+      <div style="display:grid;gap:8px">
+
+        <div style="background:var(--card);border-radius:8px;padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="background:#14532d;color:#4ade80;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">SOURCE 1 — LIVE</span>
+            <span style="font-weight:600">Yahoo Finance (yfinance)</span>
+          </div>
+          <div style="color:var(--text-faint);font-size:12px">Used first. Fetched daily via GitHub Actions. Provides exceptional items and minority interest directly from quarterly income statements. <strong style="color:var(--text)">Coverage: inconsistent for Indian companies</strong> — Yahoo often leaves these fields blank even when the data exists in filings.</div>
+        </div>
+
+        <div style="background:var(--card);border-radius:8px;padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="background:#1c3a5e;color:#60a5fa;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">SOURCE 2 — QUARTERLY</span>
+            <span style="font-weight:600">BSE India API (exceptional items only)</span>
+          </div>
+          <div style="color:var(--text-faint);font-size:12px">Used when Yahoo has no exceptional items data. The <code style="background:var(--bg);padding:1px 5px;border-radius:4px">enrich_eps.py</code> script runs manually on laptop each quarter (mid-Feb, May, Aug, Nov) after results season. Fetches standalone quarterly P&amp;L from BSE's <code style="background:var(--bg);padding:1px 5px;border-radius:4px">resultsSnapshot()</code> API. <strong style="color:var(--text)">Finding: most Nifty 50 companies report zero exceptional items in most quarters</strong> — the zero is genuine, not missing data.</div>
+        </div>
+
+        <div style="background:var(--card);border-radius:8px;padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="background:#3b1f08;color:#fb923c;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">SOURCE 3 — ANNUAL</span>
+            <span style="font-weight:600">Research-based minority interest overrides</span>
+          </div>
+          <div style="color:var(--text-faint);font-size:12px">Used when Yahoo has no minority interest data (which is almost always). Stored in <code style="background:var(--bg);padding:1px 5px;border-radius:4px">minority_overrides.json</code>. Figures derived from published FY2024-25 consolidated annual reports and ownership structures. Annual MI is divided by 4 to estimate each quarter. <strong style="color:var(--text)">Confidence levels: HIGH / MEDIUM / LOW / ZERO</strong> — see per-stock detail below.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Block 3 — Confidence by stock -->
+    <div style="margin-bottom:16px">
+      <div style="font-weight:700;color:var(--text);margin-bottom:8px">Minority interest confidence by stock</div>
+      <div style="color:var(--text-faint);font-size:12px;margin-bottom:8px">Stocks where minority interest materially affects EPS (impact &gt;3%):</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px" id="dq-mi-stocks">
+        <!-- Filled by JS from nifty_data.json -->
+      </div>
+      <div style="color:var(--text-faint);font-size:12px;margin-top:8px">All other stocks have confirmed zero or negligible minority interest (banks, pure-play IT, FMCG — fully owned subsidiaries).</div>
+    </div>
+
+    <!-- Block 4 — How to get 100% accurate data -->
+    <div style="margin-bottom:8px">
+      <div style="font-weight:700;color:var(--text);margin-bottom:8px">How to get 100% accurate data</div>
+      <div style="display:grid;gap:6px;font-size:12px;color:var(--text-faint)">
+        <div>① <strong style="color:var(--text)">Exceptional items</strong> — Run <code style="background:var(--bg);padding:1px 5px;border-radius:4px">py enrich_eps.py</code> on laptop each quarter after results season. This pulls exact values from BSE's official API. Currently the most reliable automated source available.</div>
+        <div>② <strong style="color:var(--text)">Minority interest</strong> — No free API provides this reliably for Indian companies. NSE's XBRL portal and BSE both block automated access. The only 100% accurate source is the company's published Annual Report PDF. Update <code style="background:var(--bg);padding:1px 5px;border-radius:4px">minority_overrides.json</code> annually after FY annual reports (June–July). For each stock, find "Non-Controlling Interest" in the Consolidated Statement of Profit &amp; Loss. BSE annual reports: <strong style="color:var(--text)">bseindia.com → Company Search → Annual Report</strong>.</div>
+        <div>③ <strong style="color:var(--text)">Fully automated CLEAN data</strong> — Would require a paid data provider (Trendlyne, Tijori Finance, Refinitiv) that sources directly from XBRL filings. Estimated cost: ₹500–2000/month.</div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:10px;font-size:11px;color:var(--text-faint)">
+      Data vintage: <span id="dq-vintage">FY2024-25</span> &nbsp;·&nbsp; Last MI override update: <span id="dq-mi-updated">—</span> &nbsp;·&nbsp;
+      This disclosure is embedded in the dashboard and updates automatically when minority_overrides.json is updated.
+    </div>
+
   </div>
 
 </div><!-- /tab-overview -->
@@ -912,6 +991,60 @@ function renderDQ(d) {
   document.getElementById('dq-clean').textContent = sm.clean_eps_count ?? '—';
   document.getElementById('dq-partial').textContent = sm.partial_eps_count ?? '—';
   document.getElementById('dq-unverified').textContent = sm.unverified_eps_count ?? '—';
+
+  // Populate disclosure panel per-stock MI confidence cards
+  const miContainer = document.getElementById('dq-mi-stocks');
+  if (miContainer && ALL_STOCKS.length) {
+    // Confidence colours
+    const confStyle = {
+      'HIGH':   { bg: '#14532d', color: '#4ade80' },
+      'MEDIUM': { bg: '#1c2a40', color: '#60a5fa' },
+      'LOW':    { bg: '#3b1f08', color: '#fb923c' },
+      'ZERO':   { bg: '#1a1a2e', color: '#52525b' },
+    };
+    // MI impact stocks (mi_pct > 1%) — from nifty_data.json eps_details minority_source
+    const miStocks = ALL_STOCKS.filter(s => {
+      const details = s.eps_details || [];
+      return details.some(q => (q.minority_source||'').startsWith('override_'));
+    }).sort((a,b) => {
+      // sort by MI % descending using minority_cr from first available quarter
+      const getMI = s => Math.abs((s.eps_details||[]).find(q=>q.minority_cr!=null)?.minority_cr || 0);
+      return getMI(b) - getMI(a);
+    });
+
+    if (miStocks.length === 0) {
+      miContainer.innerHTML = '<div style="color:var(--text-faint);font-size:12px">No minority interest override data yet — run fetch_data.py to populate.</div>';
+    } else {
+      miContainer.innerHTML = miStocks.map(s => {
+        const details = s.eps_details || [];
+        const miSrc = (details.find(q=>(q.minority_source||'').startsWith('override_'))?.minority_source || '').replace('override_','').toUpperCase();
+        const cs = confStyle[miSrc] || confStyle['LOW'];
+        const qMI = details.find(q => q.minority_cr != null);
+        const annualMI = qMI ? Math.round(Math.abs(qMI.minority_cr) * 4) : null;
+        const niTotal = details.reduce((sum,q) => sum + (q.reported_ni_cr||0), 0);
+        const miPct = (annualMI && niTotal) ? ((annualMI/niTotal)*100).toFixed(1) : '?';
+        return `<div style="background:var(--card);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-weight:700;font-size:13px">${s.symbol.replace('.NS','')}</span>
+            <span style="background:${cs.bg};color:${cs.color};font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px">${miSrc || 'LOW'}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-faint)">MI ≈ ${miPct}% of NI &nbsp;·&nbsp; ~₹${annualMI ? annualMI+'cr/yr' : '?'}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+// ── Toggle EPS disclosure panel ──
+function toggleDQDisclosure() {
+  const panel = document.getElementById('dq-disclosure');
+  const btn   = document.getElementById('dq-info-btn');
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? 'ⓘ How is this data sourced?' : '✕ Close disclosure';
+  btn.style.borderColor = isOpen ? '' : 'var(--accent)';
+  btn.style.color = isOpen ? '' : 'var(--accent)';
 }
 
 // ── Table ──

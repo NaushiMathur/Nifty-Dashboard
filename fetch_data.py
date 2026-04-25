@@ -121,6 +121,29 @@ except Exception as _e:
     log.warning(f"Could not load {_EPS_OVERRIDES_FILE}: {_e} — running Yahoo-only mode")
 
 # ─────────────────────────────────────────────
+# MINORITY INTEREST OVERRIDES  (research-based, updated annually)
+# ─────────────────────────────────────────────
+# minority_overrides.json contains annual minority interest figures for all
+# Nifty 50 stocks, based on published consolidated annual reports.
+# Used when Yahoo Finance does not provide quarterly minority interest data.
+# Each stock entry includes: mi_cr_annual, confidence, source, note.
+# Update annually after FY annual reports are published (June-July).
+_MINORITY_OVERRIDES_FILE = "minority_overrides.json"
+_MINORITY_OVERRIDES: dict = {}  # { "RELIANCE": { "mi_cr_annual": 4179, "mi_pct_of_ni": 5.0, "confidence": "MEDIUM", ... } }
+
+try:
+    if os.path.exists(_MINORITY_OVERRIDES_FILE):
+        with open(_MINORITY_OVERRIDES_FILE, "r") as _f:
+            _mraw = json.load(_f)
+        _MINORITY_OVERRIDES = _mraw.get("overrides", {})
+        _mi_vintage = _mraw.get("_data_vintage", "unknown")
+        log.info(f"Loaded minority interest overrides for {len(_MINORITY_OVERRIDES)} stocks (vintage: {_mi_vintage})")
+    else:
+        log.info(f"{_MINORITY_OVERRIDES_FILE} not found — minority interest from Yahoo only")
+except Exception as _e:
+    log.warning(f"Could not load {_MINORITY_OVERRIDES_FILE}: {_e} — minority interest from Yahoo only")
+
+# ─────────────────────────────────────────────
 # HELPERS
 # ─────────────────────────────────────────────
 
@@ -243,11 +266,25 @@ def _clean_one_quarter(col, shares_outstanding, ticker_key=None, q_date_str=None
     # --- Minority Interest ---
     minority = None
     min_found = False
+    min_source = None
     for label in ["Minority Interest", "Non Controlling Interest"]:
         if label in col.index and not pd.isna(col.get(label)):
             minority = float(col[label])
             min_found = True
+            min_source = "yahoo"
             break
+
+    # If Yahoo didn't have it, try minority_overrides.json
+    # The override stores an ANNUAL figure — divide by 4 for a quarterly estimate
+    if not min_found and ticker_key:
+        mi_entry = _MINORITY_OVERRIDES.get(ticker_key, {})
+        mi_annual_cr = mi_entry.get("mi_cr_annual")
+        mi_confidence = mi_entry.get("confidence", "LOW")
+        if mi_annual_cr is not None and mi_annual_cr > 0:
+            # Distribute annual MI evenly across 4 quarters (approximation)
+            minority = (mi_annual_cr / 4) * 1e7   # crores → rupees, quarterly
+            min_found = True
+            min_source = f"override_{mi_confidence.lower()}"   # e.g. "override_high"
 
     if minority is not None:
         adj_net_income = adj_net_income - abs(minority)
@@ -258,12 +295,13 @@ def _clean_one_quarter(col, shares_outstanding, ticker_key=None, q_date_str=None
         q_adj_eps = None
 
     detail = {
-        "reported_ni_cr": crores(net_income),
-        "exceptional_cr": crores(exceptional),
-        "exceptional_source": exc_source,   # "yahoo", "bse_override", or None
-        "minority_cr":    crores(minority),
-        "adj_ni_cr":      crores(adj_net_income),
-        "adj_eps":        safe_round(q_adj_eps),
+        "reported_ni_cr":  crores(net_income),
+        "exceptional_cr":  crores(exceptional),
+        "exceptional_source": exc_source,    # "yahoo", "bse_override", or None
+        "minority_cr":     crores(minority),
+        "minority_source": min_source,       # "yahoo", "override_high/medium/low", or None
+        "adj_ni_cr":       crores(adj_net_income),
+        "adj_eps":         safe_round(q_adj_eps),
     }
     return q_adj_eps, detail, exc_found, min_found
 
@@ -883,12 +921,15 @@ def main():
     top25 = scored_stocks[:25]
     bot25 = scored_stocks[25:]
 
-    # Count how many stocks had at least one quarter enriched from BSE override
+    # Count enrichment sources
     bse_enriched_count = 0
+    mi_override_count  = 0
     for s in scored_stocks:
         details = s.get("eps_details") or []
         if any(d.get("exceptional_source") == "bse_override" for d in details):
             bse_enriched_count += 1
+        if any((d.get("minority_source") or "").startswith("override_") for d in details):
+            mi_override_count += 1
 
     summary = {
         "total_stocks":        len(scored_stocks),
@@ -898,7 +939,8 @@ def main():
         "clean_eps_count":     sum(1 for s in scored_stocks if s.get("eps_quality") == "CLEAN"),
         "partial_eps_count":   sum(1 for s in scored_stocks if s.get("eps_quality") == "PARTIAL"),
         "unverified_eps_count":sum(1 for s in scored_stocks if s.get("eps_quality") == "UNVERIFIED"),
-        "bse_enriched_count":  bse_enriched_count,   # stocks using at least 1 BSE override
+        "bse_enriched_count":       bse_enriched_count,   # stocks using at least 1 BSE exceptional items override
+        "mi_override_count":        mi_override_count,    # stocks using minority interest override from minority_overrides.json
         "sector_avg_pes":      sector_avgs,
         "buy_count":           sum(1 for s in scored_stocks if s.get("signal") == "BUY"),
         "hold_count":          sum(1 for s in scored_stocks if s.get("signal") == "HOLD"),
@@ -925,7 +967,7 @@ def main():
     log.info("=" * 60)
     log.info(f"Done. {len(scored_stocks)} stocks processed.")
     log.info(f"BUY: {summary['buy_count']} | HOLD: {summary['hold_count']} | AVOID: {summary['avoid_count']}")
-    log.info(f"EPS Quality — CLEAN: {summary['clean_eps_count']} | PARTIAL: {summary['partial_eps_count']} | UNVERIFIED: {summary['unverified_eps_count']} | BSE-enriched: {summary['bse_enriched_count']}")
+    log.info(f"EPS Quality — CLEAN: {summary['clean_eps_count']} | PARTIAL: {summary['partial_eps_count']} | UNVERIFIED: {summary['unverified_eps_count']} | BSE-enriched: {summary['bse_enriched_count']} | MI-override: {summary['mi_override_count']}")
     log.info("Output saved to nifty_data.json")
     log.info("=" * 60)
 

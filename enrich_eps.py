@@ -54,7 +54,7 @@ NSE_TO_BSE = {
     "HDFCBANK.NS":    "500180",
     "BHARTIARTL.NS":  "532454",
     "ICICIBANK.NS":   "532174",
-    "INFOSYS.NS":     "500209",
+    "INFY.NS":        "500209",   # Yahoo uses INFY.NS, not INFOSYS.NS
     "SBIN.NS":        "500112",
     "HINDUNILVR.NS":  "500696",
     "ITC.NS":         "500875",
@@ -100,6 +100,9 @@ NSE_TO_BSE = {
     "ZOMATO.NS":      "543320",
     "INDIGO.NS":      "521064",
     "MAXHEALTH.NS":   "543220",
+    "SBILIFE.NS":     "540719",
+    "HDFCLIFE.NS":    "540777",
+    "TATACONSUM.NS":  "500800",
     "LTIM.NS":        "540005",   # may have exited; kept for historical overrides
 }
 

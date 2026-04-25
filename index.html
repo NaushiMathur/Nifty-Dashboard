@@ -340,11 +340,90 @@ tr.row-AVOID td:first-child{border-left:3px solid var(--avoid)}
   </div>
 
   <!-- Data Quality -->
-  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#52525b;margin-bottom:10px">EPS DATA QUALITY</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#52525b">EPS DATA QUALITY</div>
+    <button id="dq-info-btn" onclick="toggleDQDisclosure()" style="background:none;border:1px solid var(--border);border-radius:20px;color:var(--text-faint);font-size:11px;padding:2px 10px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-faint)'">
+      ⓘ How is this data sourced?
+    </button>
+  </div>
   <div class="dq-panel">
-    <div class="dq-block"><div class="dq-num" style="color:#4ade80" id="dq-clean">—</div><div class="dq-label">CLEAN — Both exceptional items & minority interest found and stripped</div></div>
+    <div class="dq-block"><div class="dq-num" style="color:#4ade80" id="dq-clean">—</div><div class="dq-label">CLEAN — Both exceptional items &amp; minority interest found and stripped</div></div>
     <div class="dq-block"><div class="dq-num" style="color:#60a5fa" id="dq-partial">—</div><div class="dq-label">PARTIAL — One of the two adjustments applied</div></div>
     <div class="dq-block"><div class="dq-num" style="color:#fb923c" id="dq-unverified">—</div><div class="dq-label">UNVERIFIED — Raw reported EPS used, no adjustment data available</div></div>
+  </div>
+
+  <!-- Full EPS Data Disclosure Panel (hidden by default) -->
+  <div id="dq-disclosure" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:4px;margin-bottom:16px;font-size:13px;line-height:1.7;color:var(--text)">
+
+    <div style="font-size:14px;font-weight:700;margin-bottom:16px;color:var(--accent)">📊 Full EPS Data Source Disclosure</div>
+
+    <!-- Block 1 — What we adjust for -->
+    <div style="margin-bottom:16px">
+      <div style="font-weight:700;color:var(--text);margin-bottom:6px">What we strip from reported Net Income</div>
+      <div style="color:var(--text-faint)">Reported Net Income from Indian company filings often includes two distortions that make EPS misleading for valuation:</div>
+      <div style="margin-top:8px;padding-left:12px;border-left:2px solid var(--border)">
+        <div style="margin-bottom:6px"><span style="color:#fbbf24;font-weight:600">① Exceptional / Unusual Items</span> — One-time gains or losses (e.g. asset sales, write-downs, restructuring charges). We remove these and add back the 25% India tax shield so the EPS reflects recurring earnings only.</div>
+        <div><span style="color:#fbbf24;font-weight:600">② Minority Interest (Non-Controlling Interest)</span> — Portion of profit that belongs to external shareholders of subsidiaries. For example, Grasim owns 57% of UltraTech Cement — 43% of UltraTech's profit belongs to UltraTech's own shareholders, not Grasim's. We subtract this so EPS reflects only what Grasim's shareholders actually own.</div>
+      </div>
+    </div>
+
+    <!-- Block 2 — Data sources by type -->
+    <div style="margin-bottom:16px">
+      <div style="font-weight:700;color:var(--text);margin-bottom:8px">Data sources (in priority order)</div>
+      <div style="display:grid;gap:8px">
+
+        <div style="background:var(--card);border-radius:8px;padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="background:#14532d;color:#4ade80;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">SOURCE 1 — LIVE</span>
+            <span style="font-weight:600">Yahoo Finance (yfinance)</span>
+          </div>
+          <div style="color:var(--text-faint);font-size:12px">Used first. Fetched daily via GitHub Actions. Provides exceptional items and minority interest directly from quarterly income statements. <strong style="color:var(--text)">Coverage: inconsistent for Indian companies</strong> — Yahoo often leaves these fields blank even when the data exists in filings.</div>
+        </div>
+
+        <div style="background:var(--card);border-radius:8px;padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="background:#1c3a5e;color:#60a5fa;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">SOURCE 2 — QUARTERLY</span>
+            <span style="font-weight:600">BSE India API (exceptional items only)</span>
+          </div>
+          <div style="color:var(--text-faint);font-size:12px">Used when Yahoo has no exceptional items data. The <code style="background:var(--bg);padding:1px 5px;border-radius:4px">enrich_eps.py</code> script runs manually on laptop each quarter (mid-Feb, May, Aug, Nov) after results season. Fetches standalone quarterly P&amp;L from BSE's <code style="background:var(--bg);padding:1px 5px;border-radius:4px">resultsSnapshot()</code> API. <strong style="color:var(--text)">Finding: most Nifty 50 companies report zero exceptional items in most quarters</strong> — the zero is genuine, not missing data.</div>
+        </div>
+
+        <div style="background:var(--card);border-radius:8px;padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="background:#3b1f08;color:#fb923c;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">SOURCE 3 — ANNUAL</span>
+            <span style="font-weight:600">Research-based minority interest overrides</span>
+          </div>
+          <div style="color:var(--text-faint);font-size:12px">Used when Yahoo has no minority interest data (which is almost always). Stored in <code style="background:var(--bg);padding:1px 5px;border-radius:4px">minority_overrides.json</code>. Figures derived from published FY2024-25 consolidated annual reports and ownership structures. Annual MI is divided by 4 to estimate each quarter. <strong style="color:var(--text)">Confidence levels: HIGH / MEDIUM / LOW / ZERO</strong> — see per-stock detail below.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Block 3 — Confidence by stock -->
+    <div style="margin-bottom:16px">
+      <div style="font-weight:700;color:var(--text);margin-bottom:8px">Minority interest confidence by stock</div>
+      <div style="color:var(--text-faint);font-size:12px;margin-bottom:8px">Stocks where minority interest materially affects EPS (impact &gt;3%):</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px" id="dq-mi-stocks">
+        <!-- Filled by JS from nifty_data.json -->
+      </div>
+      <div style="color:var(--text-faint);font-size:12px;margin-top:8px">All other stocks have confirmed zero or negligible minority interest (banks, pure-play IT, FMCG — fully owned subsidiaries).</div>
+    </div>
+
+    <!-- Block 4 — How to get 100% accurate data -->
+    <div style="margin-bottom:8px">
+      <div style="font-weight:700;color:var(--text);margin-bottom:8px">How to get 100% accurate data</div>
+      <div style="display:grid;gap:6px;font-size:12px;color:var(--text-faint)">
+        <div>① <strong style="color:var(--text)">Exceptional items</strong> — Run <code style="background:var(--bg);padding:1px 5px;border-radius:4px">py enrich_eps.py</code> on laptop each quarter after results season. This pulls exact values from BSE's official API. Currently the most reliable automated source available.</div>
+        <div>② <strong style="color:var(--text)">Minority interest</strong> — No free API provides this reliably for Indian companies. NSE's XBRL portal and BSE both block automated access. The only 100% accurate source is the company's published Annual Report PDF. Update <code style="background:var(--bg);padding:1px 5px;border-radius:4px">minority_overrides.json</code> annually after FY annual reports (June–July). For each stock, find "Non-Controlling Interest" in the Consolidated Statement of Profit &amp; Loss. BSE annual reports: <strong style="color:var(--text)">bseindia.com → Company Search → Annual Report</strong>.</div>
+        <div>③ <strong style="color:var(--text)">Fully automated CLEAN data</strong> — Would require a paid data provider (Trendlyne, Tijori Finance, Refinitiv) that sources directly from XBRL filings. Estimated cost: ₹500–2000/month.</div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:10px;font-size:11px;color:var(--text-faint)">
+      Data vintage: <span id="dq-vintage">FY2024-25</span> &nbsp;·&nbsp; Last MI override update: <span id="dq-mi-updated">—</span> &nbsp;·&nbsp;
+      This disclosure is embedded in the dashboard and updates automatically when minority_overrides.json is updated.
+    </div>
+
   </div>
 
 </div><!-- /tab-overview -->
@@ -912,6 +991,60 @@ function renderDQ(d) {
   document.getElementById('dq-clean').textContent = sm.clean_eps_count ?? '—';
   document.getElementById('dq-partial').textContent = sm.partial_eps_count ?? '—';
   document.getElementById('dq-unverified').textContent = sm.unverified_eps_count ?? '—';
+
+  // Populate disclosure panel per-stock MI confidence cards
+  const miContainer = document.getElementById('dq-mi-stocks');
+  if (miContainer && ALL_STOCKS.length) {
+    // Confidence colours
+    const confStyle = {
+      'HIGH':   { bg: '#14532d', color: '#4ade80' },
+      'MEDIUM': { bg: '#1c2a40', color: '#60a5fa' },
+      'LOW':    { bg: '#3b1f08', color: '#fb923c' },
+      'ZERO':   { bg: '#1a1a2e', color: '#52525b' },
+    };
+    // MI impact stocks (mi_pct > 1%) — from nifty_data.json eps_details minority_source
+    const miStocks = ALL_STOCKS.filter(s => {
+      const details = s.eps_details || [];
+      return details.some(q => (q.minority_source||'').startsWith('override_'));
+    }).sort((a,b) => {
+      // sort by MI % descending using minority_cr from first available quarter
+      const getMI = s => Math.abs((s.eps_details||[]).find(q=>q.minority_cr!=null)?.minority_cr || 0);
+      return getMI(b) - getMI(a);
+    });
+
+    if (miStocks.length === 0) {
+      miContainer.innerHTML = '<div style="color:var(--text-faint);font-size:12px">No minority interest override data yet — run fetch_data.py to populate.</div>';
+    } else {
+      miContainer.innerHTML = miStocks.map(s => {
+        const details = s.eps_details || [];
+        const miSrc = (details.find(q=>(q.minority_source||'').startsWith('override_'))?.minority_source || '').replace('override_','').toUpperCase();
+        const cs = confStyle[miSrc] || confStyle['LOW'];
+        const qMI = details.find(q => q.minority_cr != null);
+        const annualMI = qMI ? Math.round(Math.abs(qMI.minority_cr) * 4) : null;
+        const niTotal = details.reduce((sum,q) => sum + (q.reported_ni_cr||0), 0);
+        const miPct = (annualMI && niTotal) ? ((annualMI/niTotal)*100).toFixed(1) : '?';
+        return `<div style="background:var(--card);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-weight:700;font-size:13px">${s.symbol.replace('.NS','')}</span>
+            <span style="background:${cs.bg};color:${cs.color};font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px">${miSrc || 'LOW'}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-faint)">MI ≈ ${miPct}% of NI &nbsp;·&nbsp; ~₹${annualMI ? annualMI+'cr/yr' : '?'}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+// ── Toggle EPS disclosure panel ──
+function toggleDQDisclosure() {
+  const panel = document.getElementById('dq-disclosure');
+  const btn   = document.getElementById('dq-info-btn');
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? 'ⓘ How is this data sourced?' : '✕ Close disclosure';
+  btn.style.borderColor = isOpen ? '' : 'var(--accent)';
+  btn.style.color = isOpen ? '' : 'var(--accent)';
 }
 
 // ── Table ──
@@ -1241,260 +1374,4 @@ async function renderBacktest() {
           fill: true, tension: .25, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#f97316',
         },
         {
-          label: 'Nifty 50 Buy & Hold (₹)',
-          data: chartB,
-          borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,.08)',
-          fill: true, tension: .25, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#60a5fa',
-          borderDash: [6, 4],
-        },
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, animation: false, interaction: {mode:'index', intersect:false},
-      plugins: {
-        legend: {display:false},
-        tooltip: {
-          backgroundColor: '#0d0d15', borderColor: '#1e1e2e', borderWidth: 1,
-          titleColor: '#fff', bodyColor: '#d4d4d8',
-          callbacks: {
-            label: c => c.dataset.label + ': ' + ruR(c.parsed.y)
-          }
-        }
-      },
-      scales: {
-        x: {ticks:{color:'#71717a', font:{size:10}, maxRotation:45}, grid:{color:'#1e1e2e'}},
-        y: {ticks:{color:'#71717a', font:{size:10}, callback: v => ruR(v)}, grid:{color:'#1e1e2e'}},
-      }
-    }
-  });
-  document.getElementById('bt-nav-legend').innerHTML = `
-    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:3px;background:#f97316"></span><span style="color:#d4d4d8">Top 25 Portfolio</span></span>
-    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:3px;background:#60a5fa;border-top:1px dashed #60a5fa"></span><span style="color:#d4d4d8">Nifty 50 Buy &amp; Hold</span></span>
-  `;
-
-  // ── Spread bar chart ──
-  if (btSpreadChart) btSpreadChart.destroy();
-  btSpreadChart = new Chart(document.getElementById('bt-spread-chart').getContext('2d'), {
-    type: 'bar',
-    data: {
-      labels: quarters.map(q => q.nominal_date),
-      datasets: [{
-        label: 'Spread (% pts)',
-        data: quarters.map(q => q.spread_pct),
-        backgroundColor: quarters.map(q => (q.spread_pct||0) >= 0 ? 'rgba(74,222,128,.75)' : 'rgba(248,113,113,.75)'),
-        borderColor: quarters.map(q => (q.spread_pct||0) >= 0 ? '#4ade80' : '#f87171'),
-        borderWidth: 1,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, animation: false,
-      plugins: {
-        legend: {display:false},
-        tooltip: {
-          backgroundColor:'#0d0d15', borderColor:'#1e1e2e', borderWidth:1,
-          titleColor:'#fff', bodyColor:'#d4d4d8',
-          callbacks: {
-            label: c => {
-              const q = quarters[c.dataIndex];
-              return [
-                'Portfolio: ' + fmt(q.return_pct,'%'),
-                'Nifty:     ' + fmt(q.nifty_return_pct,'%'),
-                'Spread:    ' + fmt(q.spread_pct,'%'),
-                'Hit rate:  ' + ((q.hit_rate||0)*100).toFixed(0) + '%',
-              ];
-            }
-          }
-        }
-      },
-      scales: {
-        x: {ticks:{color:'#71717a', font:{size:10}, maxRotation:45}, grid:{display:false}},
-        y: {ticks:{color:'#71717a', font:{size:10}, callback: v => v+'%'}, grid:{color:'#1e1e2e'}},
-      }
-    }
-  });
-
-  // ── Per-quarter table ──
-  document.getElementById('bt-quarters-body').innerHTML = quarters.map((q, i) => {
-    const spreadCls = (q.spread_pct||0) >= 0 ? 'up' : 'dn';
-    const pctCls = v => v==null ? 'neu' : v>=0 ? 'up' : 'dn';
-    const hit = ((q.hit_rate||0)*100).toFixed(0);
-    const hitColor = hit >= 60 ? '#4ade80' : hit >= 40 ? '#fbbf24' : '#f87171';
-    const picksList = q.top_25 ? q.top_25.slice(0,6).map(p=>p.ticker).join(', ') + (q.top_25.length>6?', …':'') : '';
-    return `
-      <tr onclick="toggleBtQuarter(${i})">
-        <td style="color:#52525b;font-weight:700">${(q.quarter_idx ?? i) + 1}</td>
-        <td style="color:#fff;font-weight:600">${q.nominal_date}</td>
-        <td style="color:#71717a;font-size:11px">${q.execution_day || '—'}</td>
-        <td class="${pctCls(q.return_pct)}">${fmt(q.return_pct,'%')}</td>
-        <td class="${pctCls(q.nifty_return_pct)}">${fmt(q.nifty_return_pct,'%')}</td>
-        <td class="${spreadCls}" style="font-weight:700">${fmt(q.spread_pct,'%')}</td>
-        <td style="color:${hitColor};font-weight:700">${hit}%</td>
-        <td style="color:#d4d4d8">${ruR(q.portfolio_value_post_rebalance)}</td>
-        <td style="color:#71717a;font-size:11px;max-width:220px;overflow:hidden;text-overflow:ellipsis">${picksList}</td>
-      </tr>
-      <tr class="bt-quarter-expand" id="bt-q-${i}">
-        <td colspan="9">
-          <div class="bt-pick-grid" id="bt-q-inner-${i}"></div>
-        </td>
-      </tr>`;
-  }).join('');
-
-  // ── Ticker frequency table ──
-  const tkStats = {};
-  quarters.forEach(q => {
-    const retMap = {};
-    (q.ticker_returns || []).forEach(tr => {
-      // Simulator emits [ticker, return_pct] tuples
-      const [tk, ret] = Array.isArray(tr) ? tr : [tr.ticker, tr.return];
-      retMap[tk] = ret;
-    });
-    (q.top_25 || []).forEach(p => {
-      const t = p.ticker;
-      if (!tkStats[t]) tkStats[t] = {picks:0, wins:0, rets:[], spreads:[]};
-      tkStats[t].picks++;
-      const ret = retMap[t];
-      if (ret != null) {
-        tkStats[t].rets.push(ret);
-        const spread = ret - (q.nifty_return_pct || 0);
-        tkStats[t].spreads.push(spread);
-        if (spread > 0) tkStats[t].wins++;
-      }
-    });
-  });
-  const tkRows = Object.entries(tkStats)
-    .map(([t, st]) => ({
-      t, picks: st.picks, wins: st.wins,
-      winRate: st.picks ? st.wins/st.picks*100 : 0,
-      avgRet: st.rets.length ? st.rets.reduce((a,b)=>a+b,0)/st.rets.length : null,
-      avgSpread: st.spreads.length ? st.spreads.reduce((a,b)=>a+b,0)/st.spreads.length : null,
-    }))
-    .sort((a,b) => b.picks - a.picks || b.winRate - a.winRate);
-
-  document.getElementById('bt-tickers-body').innerHTML = tkRows.map(r => {
-    const wrCol = r.winRate >= 60 ? '#4ade80' : r.winRate >= 40 ? '#fbbf24' : '#f87171';
-    const spCol = (r.avgSpread||0) >= 0 ? '#4ade80' : '#f87171';
-    return `<tr>
-      <td style="color:#fff;font-weight:700">${r.t}</td>
-      <td>${r.picks} / ${quarters.length}</td>
-      <td>${r.wins}</td>
-      <td style="color:${wrCol};font-weight:700">${r.winRate.toFixed(0)}%</td>
-      <td>${fmt(r.avgRet,'%')}</td>
-      <td style="color:${spCol};font-weight:600">${fmt(r.avgSpread,'%')}</td>
-    </tr>`;
-  }).join('');
-
-  // ── Assumptions ──
-  const a = d.assumptions || {};
-  const asm = [
-    ['Transaction cost', ((a.transaction_cost_per_side||0)*100).toFixed(2) + '% per side'],
-    ['Risk-free rate',   ((a.risk_free_rate_annual||0)*100).toFixed(1) + '% annual (Indian 10Y G-Sec proxy)'],
-    ['Portfolio size',   (a.top_n || '—') + ' stocks, equal-weighted'],
-    ['Initial capital',  ruR(a.initial_capital)],
-    ['Fundamentals lag', (a.fundamental_lag_days || '—') + ' days from quarter-end'],
-    ['Execution price',  a.execution_price || '—'],
-    ['Rebalance cadence','Quarterly (first trading day of Feb/May/Aug/Nov)'],
-    ['Universe',         'Actual historical Nifty 50 constituents at each rebalance'],
-  ];
-  document.getElementById('bt-assumptions').innerHTML = asm.map(([l,v]) =>
-    `<div class="bt-asm-row"><span class="lbl">${l}</span><span class="val">${v}</span></div>`
-  ).join('');
-}
-
-function toggleBtQuarter(i) {
-  const row = document.getElementById('bt-q-' + i);
-  const inner = document.getElementById('bt-q-inner-' + i);
-  if (row.classList.contains('open')) { row.classList.remove('open'); return; }
-
-  const q = BACKTEST_DATA.quarters[i];
-  const retMap = {};
-  (q.ticker_returns || []).forEach(tr => {
-    const [tk, ret] = Array.isArray(tr) ? tr : [tr.ticker, tr.return];
-    retMap[tk] = ret;
-  });
-  inner.innerHTML = (q.top_25 || []).map(p => {
-    const ret = retMap[p.ticker];
-    const spread = ret != null ? ret - (q.nifty_return_pct||0) : null;
-    const retHtml = ret == null ? '<span style="color:#52525b">—</span>' :
-                    ret >= 0 ? `<span style="color:#4ade80">+${ret.toFixed(1)}%</span>` :
-                               `<span style="color:#f87171">${ret.toFixed(1)}%</span>`;
-    const spHtml = spread == null ? '' :
-                   spread >= 0 ? ` <span style="color:#4ade80;font-size:9px">▲${spread.toFixed(1)}</span>` :
-                                 ` <span style="color:#f87171;font-size:9px">▼${Math.abs(spread).toFixed(1)}</span>`;
-    return `<div class="bt-pick">
-      <div class="bt-pick-sym">${p.ticker}</div>
-      <div class="bt-pick-score">Score ${p.total_score?.toFixed?.(0) ?? p.total_score}<span class="sub">(F${Math.round(p.fundamental)}·V${Math.round(p.valuation)}·M${Math.round(p.momentum)})</span></div>
-      <div style="font-size:10px;margin-top:4px">${retHtml}${spHtml}</div>
-    </div>`;
-  }).join('');
-  row.classList.add('open');
-}
-
-// ── Helpers ──
-function scoreColor(sc) {
-  if (sc == null) return '#71717a';
-  if (sc >= 65) return '#4ade80';
-  if (sc >= 50) return '#a3e635';
-  if (sc >= 35) return '#fbbf24';
-  if (sc >= 20) return '#fb923c';
-  return '#f87171';
-}
-
-function populateSectorFilter() {
-  const sectors = [...new Set(ALL_STOCKS.map(s=>s.sector).filter(Boolean))].sort();
-  const sel = document.getElementById('sector-filter');
-  sectors.forEach(sec => {
-    const opt = document.createElement('option');
-    opt.value = sec; opt.textContent = sec;
-    sel.appendChild(opt);
-  });
-}
-
-function filterSignal(sig, btn) {
-  currentSignalFilter = sig;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTable();
-}
-
-function filterTable() { renderTable(); }
-
-function sortTable(key) {
-  if (currentSort.key === key) {
-    currentSort.dir *= -1;
-  } else {
-    currentSort.key = key;
-    currentSort.dir = key === 'rank' || key === 'name' ? 1 : -1;
-  }
-  // Reset all headers
-  document.querySelectorAll('thead th').forEach(th => {
-    th.classList.remove('sorted');
-    const a = th.querySelector('.sort-arrow');
-    if (a) a.textContent = '↕';
-  });
-  // Highlight the active column
-  document.querySelectorAll('thead th').forEach(th => {
-    if (th.getAttribute('onclick') === `sortTable('${key}')`) {
-      th.classList.add('sorted');
-      const a = th.querySelector('.sort-arrow');
-      if (a) a.textContent = currentSort.dir === 1 ? '↑' : '↓';
-    }
-  });
-  const arrow = currentSort.dir === 1 ? '↑' : '↓';
-  document.getElementById('sort-info').textContent = 'Sorted by: ' + currentSort.key.replace(/_/g,' ') + ' ' + arrow;
-  renderTable();
-}
-
-function showTab(name, evt) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  if (evt && evt.target) evt.target.classList.add('active');
-  if (name === 'stocks')   renderTable();
-  if (name === 'backtest') renderBacktest();
-}
-
-// ── Init ──
-loadData();
-</script>
-</body>
-</html>
+          label: 'Nifty

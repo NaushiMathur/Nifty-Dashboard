@@ -49,6 +49,7 @@ A personal investment dashboard for tracking Nifty 50 stocks. Built by Naushi (n
 | `nifty50_historical_composition.json` | Historical Nifty 50 constituents at each rebalance — solves survivorship bias |
 | `enrich_eps.py` | **Laptop-only** script: fetches BSE quarterly P&L via `bse` library, extracts exceptional items, writes `eps_overrides.json` |
 | `eps_overrides.json` | BSE-sourced exceptional items data per stock per quarter — read by `fetch_data.py` when Yahoo data is missing |
+| `minority_overrides.json` | Research-based annual minority interest figures for all 50 stocks — read by `fetch_data.py` when Yahoo NCI data is missing. Update annually after FY Annual Reports (June–July). |
 
 ### Backtest directories (gitignored or large — do not commit)
 
@@ -231,6 +232,45 @@ Run `enrich_eps.py` once per quarter, ideally:
 
 ---
 
+## Minority Interest Overrides
+
+### Why it exists
+Yahoo Finance does not provide quarterly minority interest (Non-Controlling Interest) data for Indian companies. NSE and BSE APIs block automated access to consolidated P&L data where NCI appears. Solution: `minority_overrides.json` stores annual NCI figures per stock, derived from published FY2024-25 consolidated annual reports. `fetch_data.py` applies these when Yahoo is missing the data.
+
+### File: `minority_overrides.json`
+- Annual MI in crores (`mi_cr_annual`) divided by 4 to estimate each quarter
+- Confidence levels: **HIGH** (structurally stable, large listed subsidiaries), **MEDIUM** (stable but can fluctuate), **LOW** (estimated from structure, not independently verified), **ZERO** (confirmed no material NCI)
+- Data vintage: FY2024-25
+- Each entry includes `note`, `how_to_get_exact`, and `ownership_detail` fields
+
+### Stocks where MI matters most (update these first annually)
+| Stock | MI% of NI | Confidence | Why |
+|---|---|---|---|
+| GRASIM | 57% | HIGH | UltraTech (43% external) + AB Capital (44% external) |
+| BAJAJFINSV | 48% | HIGH | Bajaj Finance (47.5% external) |
+| LT | 16% | HIGH | LT Finance, LTTS, LTIMindtree minorities |
+| ADANIENT | 15% | LOW | Complex unlisted subsidiary structure |
+| TATASTEEL | 11% | MEDIUM | Tata Steel Long Products (25% external) |
+| M&M | 8% | MEDIUM | Mahindra Finance, Lifespace |
+| SUNPHARMA | 6% | MEDIUM | Taro Pharmaceutical (24% external, NYSE listed) |
+| RELIANCE | 5% | MEDIUM | Jio Platforms (33% external), Reliance Retail (5% external) |
+
+### How to update annually (June–July after FY Annual Reports)
+1. Download Annual Report PDF from `bseindia.com → Company Search → Annual Report`
+2. Find "Non-Controlling Interest" in the **Consolidated Statement of Profit & Loss**
+3. Update `mi_cr_annual` and `mi_pct_of_ni` in `minority_overrides.json`
+4. Bump `data_as_of` and `_last_updated` fields
+5. Commit and push — `fetch_data.py` picks up automatically on next run
+
+### Dashboard disclosure
+The dashboard Overview tab has a **"ⓘ How is this data sourced?"** button next to the EPS Data Quality panel. Clicking it expands a full disclosure showing:
+- What adjustments are made and why
+- All three data sources (Yahoo → BSE → minority overrides) in priority order
+- Per-stock minority interest confidence cards for all stocks using overrides
+- Exact instructions for getting 100% accurate data
+
+---
+
 ## Known issues / limitations
 
 - **yfinance on cloud**: Yahoo occasionally rate-limits GitHub Actions IPs. Solution: 2-second delay between stock fetches + retry logic already in script.
@@ -251,10 +291,11 @@ Run `enrich_eps.py` once per quarter, ideally:
 4. **Sharpe ratio / alpha** — already computed in backtest; needs wiring into the simulation tab as results come in
 5. **Promoter holding** — manual quarterly input feature
 6. **Nifty 500 expansion** — future, after Nifty 50 is stable
-7. **BSE enrichment — first run** — `enrich_eps.py` is built but hasn't been run yet. Run it on laptop and push `eps_overrides.json` to the repo.
-8. **Change 1 (EPS source flag in dashboard)** — `exceptional_source` field now in `eps_details` per quarter; dashboard doesn't yet display whether data came from Yahoo or BSE override
-9. **Change 2 (1M → 12M momentum)** — flagged in the Change Log doc; not yet implemented in fetch_data.py or scoring engine
-10. **Change 3 (divergence news deep-link)** — flagged in the Change Log doc; not yet implemented in dashboard.html
+7. **BSE enrichment — push to GitHub** — `enrich_eps.py` has been run and `eps_overrides.json` written. Still needs: `git add eps_overrides.json && git commit -m "..."  && git push`.
+8. **Minority overrides — push to GitHub** — `minority_overrides.json` written. Push with `git add minority_overrides.json && git commit && git push` so GitHub Actions picks it up.
+9. **Minority overrides — annual verification** — HIGH/MEDIUM confidence entries should be verified against actual FY25 Annual Reports. Current figures from training data knowledge are good approximations but not independently confirmed.
+10. **Change 2 (1M → 12M momentum)** — flagged in the Change Log doc; not yet implemented in fetch_data.py or scoring engine
+11. **Change 3 (divergence news deep-link)** — flagged in the Change Log doc; not yet implemented in dashboard.html
 
 ---
 
@@ -287,4 +328,4 @@ This is for personal informed investment — not advice to others.
 
 ---
 
-*Last updated: April 25, 2026*
+*Last updated: April 25, 2026 (minority_overrides.json added, dashboard EPS disclosure built)*

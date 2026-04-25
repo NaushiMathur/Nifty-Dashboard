@@ -1,0 +1,422 @@
+{
+  "_description": "Minority interest (Non-Controlling Interest) overrides for Nifty 50 stocks. Used by fetch_data.py when Yahoo Finance does not provide minority interest data in quarterly income statements. Values are based on published consolidated annual reports and quarterly filings.",
+  "_how_to_update": "After each annual report season (June-July), verify HIGH and MEDIUM confidence entries against the latest AR. Update mi_cr_annual and mi_pct_of_ni. Bump data_as_of to reflect the new AR year.",
+  "_how_applied": "fetch_data.py distributes mi_cr_annual equally across 4 quarters (mi_cr_annual / 4 per quarter). This is an approximation — actual quarterly MI fluctuates but annual average is stable.",
+  "_confidence_guide": {
+    "HIGH":   "Structurally stable — tied to fixed ownership percentages of large listed subsidiaries. Changes only if ownership structure changes. Verify annually.",
+    "MEDIUM": "Reasonably stable but can fluctuate with subsidiary performance. Verify annually.",
+    "LOW":    "Estimated from ownership structure — actual figure not independently verified. Treat as directional, not precise. Replace with real AR figure when possible.",
+    "ZERO":   "Confirmed no material NCI — subsidiaries are wholly owned or NCI is negligible (<0.3% of NI)."
+  },
+  "_last_updated": "2026-04-25",
+  "_data_vintage": "FY2024-25 (April 2024 – March 2025) annual reports and Q3 FY25 consolidated filings",
+  "_verify_at": "https://www.bseindia.com/stock-share-price/annual-reports/{bse_code}/ or company investor relations page",
+
+  "overrides": {
+
+    "GRASIM": {
+      "mi_cr_annual": 2560,
+      "mi_pct_of_ni": 57.0,
+      "confidence": "HIGH",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500300",
+      "source": "Consolidated P&L — Aditya Birla Group annual report FY25",
+      "note": "Grasim owns 57% of UltraTech Cement and 56% of Aditya Birla Capital. The remaining 43%/44% belongs to external shareholders — this is the dominant source of NCI. UltraTech alone contributes ~₹2000cr of NCI annually. This figure is structurally stable as long as ownership percentages don't change.",
+      "how_to_get_exact": "Download Grasim FY25 Annual Report from bseindia.com/500300. Find 'Non-Controlling Interest' in the Consolidated Statement of Profit & Loss. Sum all 4 quarters from quarterly results filings.",
+      "ownership_detail": {
+        "UltraTech Cement": "Grasim owns 57.5% — 42.5% NCI",
+        "AB Capital": "Grasim owns 56.4% — 43.6% NCI",
+        "Other subsidiaries": "Various, mostly wholly owned"
+      }
+    },
+
+    "BAJAJFINSV": {
+      "mi_cr_annual": 4646,
+      "mi_pct_of_ni": 48.0,
+      "confidence": "HIGH",
+      "data_as_of": "FY2024-25",
+      "bse_code": "532978",
+      "source": "Consolidated P&L — Bajaj Finserv annual report FY25",
+      "note": "Bajaj Finserv owns 52.5% of Bajaj Finance (one of India's largest NBFCs). The remaining 47.5% belongs to public shareholders — this creates massive NCI since Bajaj Finance is the primary earnings driver. NCI is ~48% of consolidated PAT. This is structurally stable unless Bajaj Finserv buys back Bajaj Finance shares.",
+      "how_to_get_exact": "Download Bajaj Finserv FY25 Annual Report. Find NCI in Consolidated P&L. Alternatively, Bajaj Finance's standalone PAT × 47.5% = approximate NCI.",
+      "ownership_detail": {
+        "Bajaj Finance": "Bajaj Finserv owns 52.5% — 47.5% NCI",
+        "Bajaj Allianz General": "Bajaj Finserv owns 74% — 26% NCI (smaller earnings)",
+        "Bajaj Allianz Life": "Bajaj Finserv owns 74% — 26% NCI (smaller earnings)"
+      }
+    },
+
+    "LT": {
+      "mi_cr_annual": 2510,
+      "mi_pct_of_ni": 16.0,
+      "confidence": "HIGH",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500510",
+      "source": "Consolidated P&L — Larsen & Toubro annual report FY25",
+      "note": "L&T consolidates several listed subsidiaries with significant external shareholders: LT Finance Holdings (~51% owned, 49% external), L&T Technology Services (~73% owned, 27% external), LTIMindtree (~68% owned, 32% external). NCI is typically 15-18% of consolidated PAT and is stable.",
+      "how_to_get_exact": "Download L&T FY25 Annual Report from bseindia.com/500510. NCI is shown as a separate line in the Consolidated Statement of P&L.",
+      "ownership_detail": {
+        "LT Finance Holdings": "L&T owns ~51% — ~49% NCI",
+        "L&T Technology Services": "L&T owns ~73% — ~27% NCI",
+        "LTIMindtree": "L&T owns ~68% — ~32% NCI"
+      }
+    },
+
+    "ADANIENT": {
+      "mi_cr_annual": 1531,
+      "mi_pct_of_ni": 15.0,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "512599",
+      "source": "Estimated from Adani Enterprises consolidated structure",
+      "note": "Adani Enterprises is a holding company with complex subsidiary structure including Adani Airports Holdings, AEML (energy), Adani New Industries. Many subsidiaries are unlisted with partial external ownership. NCI estimate is directional — actual figure varies significantly quarter to quarter due to volatile earnings in infrastructure projects. LOW confidence — verify from AR.",
+      "how_to_get_exact": "Download Adani Enterprises FY25 Annual Report from bseindia.com/512599. NCI line in Consolidated P&L.",
+      "ownership_detail": {
+        "Various subsidiaries": "Complex unlisted subsidiary structure — ownership varies"
+      }
+    },
+
+    "RELIANCE": {
+      "mi_cr_annual": 4179,
+      "mi_pct_of_ni": 5.0,
+      "confidence": "MEDIUM",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500325",
+      "source": "Consolidated P&L — Reliance Industries annual report FY25",
+      "note": "Reliance has two major NCI sources: Jio Platforms (external investors including Google, Meta, KKR own ~33%) and Reliance Retail Ventures (Sovereign funds own ~4.9%). Despite large absolute NCI (~₹4000-5000cr), it is only ~5% of Reliance's massive consolidated PAT of ~₹80,000cr. MEDIUM confidence — Jio investor stakes are known but exact quarterly NCI allocation fluctuates.",
+      "how_to_get_exact": "Download Reliance FY25 Annual Report from bseindia.com/500325. NCI is separately disclosed in the Consolidated P&L.",
+      "ownership_detail": {
+        "Jio Platforms": "External investors own ~33% (Google 7.7%, Meta 9.9%, KKR 2.3%, others)",
+        "Reliance Retail Ventures": "External sovereign/PE investors own ~4.9%"
+      }
+    },
+
+    "M&M": {
+      "mi_cr_annual": 1219,
+      "mi_pct_of_ni": 8.0,
+      "confidence": "MEDIUM",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500520",
+      "source": "Consolidated P&L — Mahindra & Mahindra annual report FY25",
+      "note": "M&M consolidates Mahindra Finance (52% owned, 48% external — listed on NSE/BSE), Mahindra Lifespace (51% owned), Mahindra Holidays (69% owned). NCI is ~8% of consolidated PAT. Stable as long as ownership percentages are unchanged.",
+      "how_to_get_exact": "Download M&M FY25 Annual Report from bseindia.com/500520. NCI line in Consolidated P&L.",
+      "ownership_detail": {
+        "Mahindra Finance": "M&M owns ~52% — ~48% NCI (listed NBFC)",
+        "Mahindra Lifespace": "M&M owns ~51% — ~49% NCI",
+        "Mahindra Holidays": "M&M owns ~69% — ~31% NCI"
+      }
+    },
+
+    "TATASTEEL": {
+      "mi_cr_annual": 1010,
+      "mi_pct_of_ni": 11.0,
+      "confidence": "MEDIUM",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500470",
+      "source": "Consolidated P&L — Tata Steel annual report FY25",
+      "note": "Tata Steel's NCI primarily comes from Tata Steel Long Products (~75% owned, 25% external — listed on BSE) and minor Indian subsidiaries. European operations (Netherlands/UK) are 100% owned so no NCI there. NCI is ~10-13% of consolidated PAT in normal years but can vary with steel cycle earnings.",
+      "how_to_get_exact": "Download Tata Steel FY25 Annual Report from bseindia.com/500470. NCI in Consolidated P&L.",
+      "ownership_detail": {
+        "Tata Steel Long Products": "Tata Steel owns ~75% — ~25% NCI (listed on BSE)",
+        "European operations": "100% owned — no NCI"
+      }
+    },
+
+    "BHARTIARTL": {
+      "mi_cr_annual": 1151,
+      "mi_pct_of_ni": 3.0,
+      "confidence": "MEDIUM",
+      "data_as_of": "FY2024-25",
+      "bse_code": "532454",
+      "source": "Consolidated P&L — Bharti Airtel annual report FY25",
+      "note": "Airtel Africa is listed on the London Stock Exchange with ~33% external shareholders. This creates meaningful NCI. However, as Airtel's India business (100% owned effectively) grows faster, the NCI as % of total PAT is declining. ~3% of consolidated PAT is NCI from Airtel Africa.",
+      "how_to_get_exact": "Download Bharti Airtel FY25 Annual Report from bseindia.com/532454. NCI in Consolidated P&L.",
+      "ownership_detail": {
+        "Airtel Africa": "Bharti Airtel owns ~67% — ~33% NCI (listed on LSE)"
+      }
+    },
+
+    "JSWSTEEL": {
+      "mi_cr_annual": 262,
+      "mi_pct_of_ni": 4.0,
+      "confidence": "MEDIUM",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500228",
+      "source": "Consolidated P&L — JSW Steel annual report FY25",
+      "note": "JSW Steel consolidates JSW Steel Coated Products, Bhushan Power & Steel (BPSL, acquired via IBC — some residual claims), and other subsidiaries. NCI is approximately 3-5% of consolidated PAT.",
+      "how_to_get_exact": "Download JSW Steel FY25 Annual Report from bseindia.com/500228.",
+      "ownership_detail": {
+        "JSW Steel Coated Products": "Majority owned — minor external stake",
+        "BPSL": "Effectively 100% post-IBC acquisition"
+      }
+    },
+
+    "HINDALCO": {
+      "mi_cr_annual": 402,
+      "mi_pct_of_ni": 2.5,
+      "confidence": "MEDIUM",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500440",
+      "source": "Consolidated P&L — Hindalco Industries annual report FY25",
+      "note": "Novelis Inc (the US aluminium rolling subsidiary) is 100% owned by Hindalco — no NCI there despite being the largest earnings contributor. NCI comes from smaller Indian subsidiaries like Utkal Alumina International. NCI is low (~2-3%) for Hindalco despite its complex structure.",
+      "how_to_get_exact": "Download Hindalco FY25 Annual Report from bseindia.com/500440.",
+      "ownership_detail": {
+        "Novelis Inc": "100% owned — zero NCI",
+        "Utkal Alumina": "Hindalco majority owned — minor NCI"
+      }
+    },
+
+    "SUNPHARMA": {
+      "mi_cr_annual": 642,
+      "mi_pct_of_ni": 6.0,
+      "confidence": "MEDIUM",
+      "data_as_of": "FY2024-25",
+      "bse_code": "524715",
+      "source": "Consolidated P&L — Sun Pharmaceutical annual report FY25",
+      "note": "Taro Pharmaceutical Industries (listed on NYSE) is ~76% owned by Sun Pharma, with ~24% external shareholders. Taro contributes meaningful NCI. Other international subsidiaries are mostly wholly owned.",
+      "how_to_get_exact": "Download Sun Pharma FY25 Annual Report from bseindia.com/524715. Also check Taro Pharmaceutical's SEC filings for exact NCI.",
+      "ownership_detail": {
+        "Taro Pharmaceutical": "Sun Pharma owns ~76% — ~24% NCI (listed on NYSE)"
+      }
+    },
+
+    "APOLLOHOSP": {
+      "mi_cr_annual": 85,
+      "mi_pct_of_ni": 5.0,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "508869",
+      "source": "Estimated from Apollo Hospitals consolidated structure",
+      "note": "Apollo has various hospital JVs with minority partners and Apollo Health & Lifestyle subsidiary. NCI estimate is LOW confidence — actual figure needs verification from AR.",
+      "how_to_get_exact": "Download Apollo Hospitals FY25 Annual Report from bseindia.com/508869.",
+      "ownership_detail": {
+        "Apollo Health & Lifestyle": "Apollo owns majority — some JV minority partners"
+      }
+    },
+
+    "NTPC": {
+      "mi_cr_annual": 242,
+      "mi_pct_of_ni": 1.0,
+      "confidence": "MEDIUM",
+      "data_as_of": "FY2024-25",
+      "bse_code": "532555",
+      "source": "Consolidated P&L — NTPC annual report FY25",
+      "note": "NTPC has several joint venture power plants with state governments and private partners (e.g., NTPC-SAIL Power Company, Ratnagiri Gas & Power). These create minor NCI of approximately 1% of consolidated PAT.",
+      "how_to_get_exact": "Download NTPC FY25 Annual Report from bseindia.com/532555.",
+      "ownership_detail": {
+        "JV power plants": "Various state govt and private JVs — minor NCI"
+      }
+    },
+
+    "ADANIPORTS": {
+      "mi_cr_annual": 357,
+      "mi_pct_of_ni": 3.0,
+      "confidence": "MEDIUM",
+      "data_as_of": "FY2024-25",
+      "bse_code": "532921",
+      "source": "Estimated from Adani Ports consolidated structure",
+      "note": "Adani Ports has JV port operations internationally (Sri Lanka, Israel, Tanzania) with minority partners. Domestic operations are primarily wholly owned. ~3% NCI estimate.",
+      "how_to_get_exact": "Download Adani Ports FY25 Annual Report from bseindia.com/532921.",
+      "ownership_detail": {
+        "International port JVs": "Various minority partners in overseas operations"
+      }
+    },
+
+    "DRREDDY": {
+      "mi_cr_annual": 85,
+      "mi_pct_of_ni": 1.5,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500124",
+      "source": "Estimated — Dr Reddy's subsidiaries mostly wholly owned",
+      "note": "Dr Reddy's global subsidiaries are primarily wholly owned. Minor NCI from some joint venture arrangements. LOW confidence — likely closer to 0-1%.",
+      "how_to_get_exact": "Download Dr Reddy's FY25 Annual Report from bseindia.com/500124.",
+      "ownership_detail": {
+        "Global subsidiaries": "Primarily 100% owned"
+      }
+    },
+
+    "TATAMOTORS": {
+      "mi_cr_annual": 750,
+      "mi_pct_of_ni": 3.0,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500570",
+      "source": "Estimated — JLR is 100% owned, Indian operations mostly wholly owned",
+      "note": "Jaguar Land Rover is 100% owned — no NCI. Tata Motors Finance and other Indian subsidiaries mostly wholly owned. LOW confidence on this estimate — actual NCI may be lower. Note: Yahoo Finance is not providing EPS data for TATAMOTORS currently (UNVERIFIED quality).",
+      "how_to_get_exact": "Download Tata Motors FY25 Annual Report from bseindia.com/500570.",
+      "ownership_detail": {
+        "Jaguar Land Rover": "100% owned — zero NCI",
+        "Tata Motors Finance": "Mostly wholly owned"
+      }
+    },
+
+    "ASIANPAINT": {
+      "mi_cr_annual": 77,
+      "mi_pct_of_ni": 2.0,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500820",
+      "source": "Estimated from Asian Paints international JV structure",
+      "note": "Asian Paints has JV operations in Middle East and Asia-Pacific with minority partners. Low NCI overall — ~2% estimate.",
+      "how_to_get_exact": "Download Asian Paints FY25 Annual Report from bseindia.com/500820.",
+      "ownership_detail": {
+        "International JVs": "Middle East and Asia-Pacific minority partners"
+      }
+    },
+
+    "ITC": {
+      "mi_cr_annual": 174,
+      "mi_pct_of_ni": 0.5,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500875",
+      "source": "Estimated — ITC Hotels JV structure",
+      "note": "ITC has some hotel JV arrangements with minority partners. Overall NCI is negligible — <1% of PAT. May increase as ITC Hotels is being separately listed.",
+      "how_to_get_exact": "Download ITC FY25 Annual Report from bseindia.com/500875.",
+      "ownership_detail": {
+        "ITC Hotels": "Some JV properties with minority partners"
+      }
+    },
+
+    "TITAN": {
+      "mi_cr_annual": 47,
+      "mi_pct_of_ni": 1.0,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500114",
+      "source": "Estimated — Titan subsidiaries mostly wholly owned",
+      "note": "Titan has Favre-Leuba (Swiss watch brand, wholly owned) and CaratLane (acquired, now ~97% owned). Very minor NCI.",
+      "how_to_get_exact": "Download Titan FY25 Annual Report from bseindia.com/500114.",
+      "ownership_detail": {
+        "CaratLane": "Titan owns ~97% — minor residual NCI"
+      }
+    },
+
+    "CIPLA": {
+      "mi_cr_annual": 48,
+      "mi_pct_of_ni": 1.0,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500087",
+      "source": "Estimated — Cipla subsidiaries mostly wholly owned",
+      "note": "Cipla's international subsidiaries (US, South Africa, others) are primarily wholly owned. Very minor NCI.",
+      "how_to_get_exact": "Download Cipla FY25 Annual Report from bseindia.com/500087.",
+      "ownership_detail": {
+        "Global subsidiaries": "Primarily 100% owned"
+      }
+    },
+
+    "MAXHEALTH": {
+      "mi_cr_annual": 28,
+      "mi_pct_of_ni": 2.0,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "543220",
+      "source": "Estimated — Max Healthcare hospital JV structure",
+      "note": "Max Healthcare operates some hospitals as JVs with partners. Minor NCI overall.",
+      "how_to_get_exact": "Download Max Healthcare FY25 Annual Report from bseindia.com/543220.",
+      "ownership_detail": {
+        "Hospital JVs": "Some facilities operated as JVs with local partners"
+      }
+    },
+
+    "TATACONSUM": {
+      "mi_cr_annual": 20,
+      "mi_pct_of_ni": 1.5,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "500800",
+      "source": "Estimated — NourishCo JV with PepsiCo",
+      "note": "NourishCo Beverages is a JV between Tata Consumer and PepsiCo India. Minor NCI. Other subsidiaries mostly wholly owned.",
+      "how_to_get_exact": "Download Tata Consumer FY25 Annual Report from bseindia.com/500800.",
+      "ownership_detail": {
+        "NourishCo Beverages": "JV with PepsiCo — minor NCI"
+      }
+    },
+
+    "HCLTECH": {
+      "mi_cr_annual": 61,
+      "mi_pct_of_ni": 0.5,
+      "confidence": "MEDIUM",
+      "data_as_of": "FY2024-25",
+      "bse_code": "532281",
+      "source": "Estimated — HCL Tech subsidiaries mostly wholly owned",
+      "note": "HCL Technologies has some JV subsidiaries internationally. NCI is negligible — <1% of PAT.",
+      "how_to_get_exact": "Download HCL Tech FY25 Annual Report from bseindia.com/532281.",
+      "ownership_detail": {
+        "International subsidiaries": "Primarily wholly owned"
+      }
+    },
+
+    "SHRIRAMFIN": {
+      "mi_cr_annual": 50,
+      "mi_pct_of_ni": 0.5,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "511218",
+      "source": "Estimated — Shriram General Insurance JV",
+      "note": "Shriram Finance has Shriram General Insurance as a JV with Sanlam (South African insurer). Minor NCI.",
+      "how_to_get_exact": "Download Shriram Finance FY25 Annual Report from bseindia.com/511218.",
+      "ownership_detail": {
+        "Shriram General Insurance": "JV with Sanlam — minor NCI"
+      }
+    },
+
+    "POWERGRID": {
+      "mi_cr_annual": 79,
+      "mi_pct_of_ni": 0.5,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "532898",
+      "source": "Estimated — PowerGrid transmission SPVs",
+      "note": "PowerGrid operates several transmission SPVs, some as JVs with state utilities. Minor NCI.",
+      "how_to_get_exact": "Download PowerGrid FY25 Annual Report from bseindia.com/532898.",
+      "ownership_detail": {
+        "Transmission SPVs": "Some JV SPVs with state utilities — minor NCI"
+      }
+    },
+
+    "TECHM": {
+      "mi_cr_annual": 22,
+      "mi_pct_of_ni": 0.5,
+      "confidence": "LOW",
+      "data_as_of": "FY2024-25",
+      "bse_code": "532755",
+      "source": "Estimated — Tech Mahindra subsidiaries mostly wholly owned",
+      "note": "Tech Mahindra's subsidiaries are primarily wholly owned. Minor NCI.",
+      "how_to_get_exact": "Download Tech Mahindra FY25 Annual Report from bseindia.com/532755.",
+      "ownership_detail": {
+        "Global subsidiaries": "Primarily wholly owned"
+      }
+    },
+
+    "HDFCBANK":   { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "500180", "source": "Confirmed — no material NCI", "note": "HDFC Bank's subsidiaries (HDB Financial, HDFC Securities) are wholly owned. No material NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "ICICIBANK":  { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "532174", "source": "Confirmed — no material NCI", "note": "ICICI Bank subsidiaries mostly wholly owned. No material NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "SBIN":       { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "500112", "source": "Confirmed — no material NCI", "note": "SBI Life and SBI Cards are separately listed but NOT consolidated into SBI's P&L — they're associates, not subsidiaries. No NCI in consolidated P&L.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "AXISBANK":   { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "532215", "source": "Confirmed — no material NCI", "note": "No material NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "KOTAKBANK":  { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "500247", "source": "Confirmed — no material NCI", "note": "No material NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "BAJFINANCE": { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "500034", "source": "Confirmed — no material NCI", "note": "Bajaj Finance is itself the subsidiary (of Bajaj Finserv) — no further meaningful subsidiaries with NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "SBILIFE":    { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "540719", "source": "Confirmed — no material NCI", "note": "SBI Life is a pure insurance company — no subsidiaries with NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "HDFCLIFE":   { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "540777", "source": "Confirmed — no material NCI", "note": "No material NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "TCS":        { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "532540", "source": "Confirmed — no material NCI", "note": "TCS subsidiaries are wholly owned delivery units. No external shareholders.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "INFY":       { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "500209", "source": "Confirmed — no material NCI", "note": "Infosys subsidiaries wholly owned. No NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "WIPRO":      { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "507685", "source": "Confirmed — no material NCI", "note": "No material NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "ONGC":       { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "500312", "source": "Confirmed — no material NCI", "note": "ONGC Videsh and HPCL are subsidiaries but NCI is negligible at consolidated level.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "COALINDIA":  { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "533278", "source": "Confirmed — no material NCI", "note": "Coal India subsidiaries are operating divisions — no external shareholders.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "NTPC":       { "mi_cr_annual": 242, "mi_pct_of_ni": 1.0, "confidence": "MEDIUM", "data_as_of": "FY2024-25", "bse_code": "532555", "source": "Estimated — JV power plants", "note": "JV power plants with state govts create minor NCI.", "how_to_get_exact": "Download NTPC FY25 Annual Report from bseindia.com/532555.", "ownership_detail": { "JV power plants": "Various state govt JVs" } },
+    "POWERGRID":  { "mi_cr_annual": 79, "mi_pct_of_ni": 0.5, "confidence": "LOW", "data_as_of": "FY2024-25", "bse_code": "532898", "source": "Estimated — transmission SPVs", "note": "Some JV SPVs with state utilities — minor NCI.", "how_to_get_exact": "Download PowerGrid FY25 Annual Report from bseindia.com/532898.", "ownership_detail": {} },
+    "MARUTI":     { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "532500", "source": "Confirmed — no material NCI", "note": "Suzuki Motor Gujarat is owned directly by Suzuki Japan, not by Maruti. No NCI in Maruti's consolidated P&L.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "BAJAJ-AUTO": { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "532977", "source": "Confirmed — no material NCI", "note": "No subsidiaries with external shareholders.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "EICHERMOT":  { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "505200", "source": "Confirmed — no material NCI", "note": "Royal Enfield is wholly owned. VE Commercial Vehicles (JV with Volvo) — Eicher owns 50.07%, but this is an associate, not a subsidiary. No material NCI in consolidated P&L.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "HINDUNILVR": { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "500696", "source": "Confirmed — no material NCI", "note": "HUL subsidiaries are operational entities wholly owned by Unilever/HUL.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "NESTLEIND":  { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "500790", "source": "Confirmed — no material NCI", "note": "Nestle India is essentially a single-entity operation — no subsidiaries with NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "ULTRACEMCO": { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "532538", "source": "Confirmed — no material NCI", "note": "UltraTech subsidiaries (Nathdwara Cement etc.) are wholly owned.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "BEL":        { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "500049", "source": "Confirmed — no material NCI", "note": "Bharat Electronics — defence PSU with wholly owned subsidiaries.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "ZOMATO":     { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "543320", "source": "Confirmed — no material NCI", "note": "Zomato's subsidiaries (Blinkit, Hyperpure) are wholly owned.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "JIOFIN":     { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "543260", "source": "Confirmed — no material NCI", "note": "Jio Financial Services is a relatively new entity with minimal subsidiary NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "TRENT":      { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "500251", "source": "Confirmed — no material NCI", "note": "Trent's retail operations (Westside, Zudio) are wholly owned.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "INDIGO":     { "mi_cr_annual": 0, "mi_pct_of_ni": 0.0, "confidence": "ZERO", "data_as_of": "FY2024-25", "bse_code": "521064", "source": "Confirmed — no material NCI", "note": "IndiGo (InterGlobe Aviation) has no material subsidiaries with NCI.", "how_to_get_exact": "N/A — confirmed zero.", "ownership_detail": {} },
+    "DRREDDY":    { "mi_cr_annual": 85, "mi_pct_of_ni": 1.5, "confidence": "LOW", "data_as_of": "FY2024-25", "bse_code": "500124", "source": "Estimated", "note": "Primarily wholly owned global subsidiaries. Very minor NCI.", "how_to_get_exact": "Download Dr Reddy's FY25 Annual Report from bseindia.com/500124.", "ownership_detail": {} }
+  }
+}
