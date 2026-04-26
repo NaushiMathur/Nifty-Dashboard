@@ -328,4 +328,4 @@ This is for personal informed investment — not advice to others.
 
 ---
 
-*Last updated: April 25, 2026 (minority_overrides.json added, dashboard EPS disclosure built)*
+*Last updated: April 26, 2026 (Layer 1 cleanup — deleted 7 prototypes/mocks, untracked runtime logs, synced index.html with dashboard.html, fixed broken Backtest tab on live site)*

@@ -1374,4 +1374,260 @@ async function renderBacktest() {
           fill: true, tension: .25, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#f97316',
         },
         {
-          label: 'Nifty
+          label: 'Nifty 50 Buy & Hold (₹)',
+          data: chartB,
+          borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,.08)',
+          fill: true, tension: .25, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#60a5fa',
+          borderDash: [6, 4],
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false, interaction: {mode:'index', intersect:false},
+      plugins: {
+        legend: {display:false},
+        tooltip: {
+          backgroundColor: '#0d0d15', borderColor: '#1e1e2e', borderWidth: 1,
+          titleColor: '#fff', bodyColor: '#d4d4d8',
+          callbacks: {
+            label: c => c.dataset.label + ': ' + ruR(c.parsed.y)
+          }
+        }
+      },
+      scales: {
+        x: {ticks:{color:'#71717a', font:{size:10}, maxRotation:45}, grid:{color:'#1e1e2e'}},
+        y: {ticks:{color:'#71717a', font:{size:10}, callback: v => ruR(v)}, grid:{color:'#1e1e2e'}},
+      }
+    }
+  });
+  document.getElementById('bt-nav-legend').innerHTML = `
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:3px;background:#f97316"></span><span style="color:#d4d4d8">Top 25 Portfolio</span></span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:14px;height:3px;background:#60a5fa;border-top:1px dashed #60a5fa"></span><span style="color:#d4d4d8">Nifty 50 Buy &amp; Hold</span></span>
+  `;
+
+  // ── Spread bar chart ──
+  if (btSpreadChart) btSpreadChart.destroy();
+  btSpreadChart = new Chart(document.getElementById('bt-spread-chart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: quarters.map(q => q.nominal_date),
+      datasets: [{
+        label: 'Spread (% pts)',
+        data: quarters.map(q => q.spread_pct),
+        backgroundColor: quarters.map(q => (q.spread_pct||0) >= 0 ? 'rgba(74,222,128,.75)' : 'rgba(248,113,113,.75)'),
+        borderColor: quarters.map(q => (q.spread_pct||0) >= 0 ? '#4ade80' : '#f87171'),
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: {
+        legend: {display:false},
+        tooltip: {
+          backgroundColor:'#0d0d15', borderColor:'#1e1e2e', borderWidth:1,
+          titleColor:'#fff', bodyColor:'#d4d4d8',
+          callbacks: {
+            label: c => {
+              const q = quarters[c.dataIndex];
+              return [
+                'Portfolio: ' + fmt(q.return_pct,'%'),
+                'Nifty:     ' + fmt(q.nifty_return_pct,'%'),
+                'Spread:    ' + fmt(q.spread_pct,'%'),
+                'Hit rate:  ' + ((q.hit_rate||0)*100).toFixed(0) + '%',
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {ticks:{color:'#71717a', font:{size:10}, maxRotation:45}, grid:{display:false}},
+        y: {ticks:{color:'#71717a', font:{size:10}, callback: v => v+'%'}, grid:{color:'#1e1e2e'}},
+      }
+    }
+  });
+
+  // ── Per-quarter table ──
+  document.getElementById('bt-quarters-body').innerHTML = quarters.map((q, i) => {
+    const spreadCls = (q.spread_pct||0) >= 0 ? 'up' : 'dn';
+    const pctCls = v => v==null ? 'neu' : v>=0 ? 'up' : 'dn';
+    const hit = ((q.hit_rate||0)*100).toFixed(0);
+    const hitColor = hit >= 60 ? '#4ade80' : hit >= 40 ? '#fbbf24' : '#f87171';
+    const picksList = q.top_25 ? q.top_25.slice(0,6).map(p=>p.ticker).join(', ') + (q.top_25.length>6?', …':'') : '';
+    return `
+      <tr onclick="toggleBtQuarter(${i})">
+        <td style="color:#52525b;font-weight:700">${(q.quarter_idx ?? i) + 1}</td>
+        <td style="color:#fff;font-weight:600">${q.nominal_date}</td>
+        <td style="color:#71717a;font-size:11px">${q.execution_day || '—'}</td>
+        <td class="${pctCls(q.return_pct)}">${fmt(q.return_pct,'%')}</td>
+        <td class="${pctCls(q.nifty_return_pct)}">${fmt(q.nifty_return_pct,'%')}</td>
+        <td class="${spreadCls}" style="font-weight:700">${fmt(q.spread_pct,'%')}</td>
+        <td style="color:${hitColor};font-weight:700">${hit}%</td>
+        <td style="color:#d4d4d8">${ruR(q.portfolio_value_post_rebalance)}</td>
+        <td style="color:#71717a;font-size:11px;max-width:220px;overflow:hidden;text-overflow:ellipsis">${picksList}</td>
+      </tr>
+      <tr class="bt-quarter-expand" id="bt-q-${i}">
+        <td colspan="9">
+          <div class="bt-pick-grid" id="bt-q-inner-${i}"></div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  // ── Ticker frequency table ──
+  const tkStats = {};
+  quarters.forEach(q => {
+    const retMap = {};
+    (q.ticker_returns || []).forEach(tr => {
+      // Simulator emits [ticker, return_pct] tuples
+      const [tk, ret] = Array.isArray(tr) ? tr : [tr.ticker, tr.return];
+      retMap[tk] = ret;
+    });
+    (q.top_25 || []).forEach(p => {
+      const t = p.ticker;
+      if (!tkStats[t]) tkStats[t] = {picks:0, wins:0, rets:[], spreads:[]};
+      tkStats[t].picks++;
+      const ret = retMap[t];
+      if (ret != null) {
+        tkStats[t].rets.push(ret);
+        const spread = ret - (q.nifty_return_pct || 0);
+        tkStats[t].spreads.push(spread);
+        if (spread > 0) tkStats[t].wins++;
+      }
+    });
+  });
+  const tkRows = Object.entries(tkStats)
+    .map(([t, st]) => ({
+      t, picks: st.picks, wins: st.wins,
+      winRate: st.picks ? st.wins/st.picks*100 : 0,
+      avgRet: st.rets.length ? st.rets.reduce((a,b)=>a+b,0)/st.rets.length : null,
+      avgSpread: st.spreads.length ? st.spreads.reduce((a,b)=>a+b,0)/st.spreads.length : null,
+    }))
+    .sort((a,b) => b.picks - a.picks || b.winRate - a.winRate);
+
+  document.getElementById('bt-tickers-body').innerHTML = tkRows.map(r => {
+    const wrCol = r.winRate >= 60 ? '#4ade80' : r.winRate >= 40 ? '#fbbf24' : '#f87171';
+    const spCol = (r.avgSpread||0) >= 0 ? '#4ade80' : '#f87171';
+    return `<tr>
+      <td style="color:#fff;font-weight:700">${r.t}</td>
+      <td>${r.picks} / ${quarters.length}</td>
+      <td>${r.wins}</td>
+      <td style="color:${wrCol};font-weight:700">${r.winRate.toFixed(0)}%</td>
+      <td>${fmt(r.avgRet,'%')}</td>
+      <td style="color:${spCol};font-weight:600">${fmt(r.avgSpread,'%')}</td>
+    </tr>`;
+  }).join('');
+
+  // ── Assumptions ──
+  const a = d.assumptions || {};
+  const asm = [
+    ['Transaction cost', ((a.transaction_cost_per_side||0)*100).toFixed(2) + '% per side'],
+    ['Risk-free rate',   ((a.risk_free_rate_annual||0)*100).toFixed(1) + '% annual (Indian 10Y G-Sec proxy)'],
+    ['Portfolio size',   (a.top_n || '—') + ' stocks, equal-weighted'],
+    ['Initial capital',  ruR(a.initial_capital)],
+    ['Fundamentals lag', (a.fundamental_lag_days || '—') + ' days from quarter-end'],
+    ['Execution price',  a.execution_price || '—'],
+    ['Rebalance cadence','Quarterly (first trading day of Feb/May/Aug/Nov)'],
+    ['Universe',         'Actual historical Nifty 50 constituents at each rebalance'],
+  ];
+  document.getElementById('bt-assumptions').innerHTML = asm.map(([l,v]) =>
+    `<div class="bt-asm-row"><span class="lbl">${l}</span><span class="val">${v}</span></div>`
+  ).join('');
+}
+
+function toggleBtQuarter(i) {
+  const row = document.getElementById('bt-q-' + i);
+  const inner = document.getElementById('bt-q-inner-' + i);
+  if (row.classList.contains('open')) { row.classList.remove('open'); return; }
+
+  const q = BACKTEST_DATA.quarters[i];
+  const retMap = {};
+  (q.ticker_returns || []).forEach(tr => {
+    const [tk, ret] = Array.isArray(tr) ? tr : [tr.ticker, tr.return];
+    retMap[tk] = ret;
+  });
+  inner.innerHTML = (q.top_25 || []).map(p => {
+    const ret = retMap[p.ticker];
+    const spread = ret != null ? ret - (q.nifty_return_pct||0) : null;
+    const retHtml = ret == null ? '<span style="color:#52525b">—</span>' :
+                    ret >= 0 ? `<span style="color:#4ade80">+${ret.toFixed(1)}%</span>` :
+                               `<span style="color:#f87171">${ret.toFixed(1)}%</span>`;
+    const spHtml = spread == null ? '' :
+                   spread >= 0 ? ` <span style="color:#4ade80;font-size:9px">▲${spread.toFixed(1)}</span>` :
+                                 ` <span style="color:#f87171;font-size:9px">▼${Math.abs(spread).toFixed(1)}</span>`;
+    return `<div class="bt-pick">
+      <div class="bt-pick-sym">${p.ticker}</div>
+      <div class="bt-pick-score">Score ${p.total_score?.toFixed?.(0) ?? p.total_score}<span class="sub">(F${Math.round(p.fundamental)}·V${Math.round(p.valuation)}·M${Math.round(p.momentum)})</span></div>
+      <div style="font-size:10px;margin-top:4px">${retHtml}${spHtml}</div>
+    </div>`;
+  }).join('');
+  row.classList.add('open');
+}
+
+// ── Helpers ──
+function scoreColor(sc) {
+  if (sc == null) return '#71717a';
+  if (sc >= 65) return '#4ade80';
+  if (sc >= 50) return '#a3e635';
+  if (sc >= 35) return '#fbbf24';
+  if (sc >= 20) return '#fb923c';
+  return '#f87171';
+}
+
+function populateSectorFilter() {
+  const sectors = [...new Set(ALL_STOCKS.map(s=>s.sector).filter(Boolean))].sort();
+  const sel = document.getElementById('sector-filter');
+  sectors.forEach(sec => {
+    const opt = document.createElement('option');
+    opt.value = sec; opt.textContent = sec;
+    sel.appendChild(opt);
+  });
+}
+
+function filterSignal(sig, btn) {
+  currentSignalFilter = sig;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function filterTable() { renderTable(); }
+
+function sortTable(key) {
+  if (currentSort.key === key) {
+    currentSort.dir *= -1;
+  } else {
+    currentSort.key = key;
+    currentSort.dir = key === 'rank' || key === 'name' ? 1 : -1;
+  }
+  // Reset all headers
+  document.querySelectorAll('thead th').forEach(th => {
+    th.classList.remove('sorted');
+    const a = th.querySelector('.sort-arrow');
+    if (a) a.textContent = '↕';
+  });
+  // Highlight the active column
+  document.querySelectorAll('thead th').forEach(th => {
+    if (th.getAttribute('onclick') === `sortTable('${key}')`) {
+      th.classList.add('sorted');
+      const a = th.querySelector('.sort-arrow');
+      if (a) a.textContent = currentSort.dir === 1 ? '↑' : '↓';
+    }
+  });
+  const arrow = currentSort.dir === 1 ? '↑' : '↓';
+  document.getElementById('sort-info').textContent = 'Sorted by: ' + currentSort.key.replace(/_/g,' ') + ' ' + arrow;
+  renderTable();
+}
+
+function showTab(name, evt) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (evt && evt.target) evt.target.classList.add('active');
+  if (name === 'stocks')   renderTable();
+  if (name === 'backtest') renderBacktest();
+}
+
+// ── Init ──
+loadData();
+</script>
+</body>
+</html>
