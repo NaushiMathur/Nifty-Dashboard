@@ -665,3 +665,10 @@
 2026-04-26 03:58:54,793  INFO  ============================================================
 2026-04-26 03:58:54,793  INFO  Today is a weekend. Skipping update.
 2026-04-26 03:58:54,793  INFO  Market closed today. Writing holiday status.
+2026-04-26 04:01:24,813  INFO  Loaded EPS overrides for 48 stocks from eps_overrides.json
+2026-04-26 04:01:24,814  INFO  Loaded minority interest overrides for 50 stocks (vintage: FY2024-25 (April 2024 – March 2025) annual reports and Q3 FY25 consolidated filings)
+2026-04-26 04:01:24,814  INFO  ============================================================
+2026-04-26 04:01:24,814  INFO  Nifty 50 Dashboard — Data Fetch Starting
+2026-04-26 04:01:24,814  INFO  ============================================================
+2026-04-26 04:01:24,814  INFO  Today is a weekend. Skipping update.
+2026-04-26 04:01:24,814  INFO  Market closed today. Writing holiday status.
