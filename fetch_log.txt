@@ -658,3 +658,10 @@
 2026-04-25 23:42:44,795  INFO    Progress: 20/50 stocks fetched
 2026-04-25 23:42:44,796  INFO    Fetching ULTRACEMCO.NS...
 2026-04-25 23:42:48,240  INFO    Fetching WIPRO.NS...
+2026-04-26 03:58:54,793  INFO  Loaded EPS overrides for 48 stocks from eps_overrides.json
+2026-04-26 03:58:54,793  INFO  Loaded minority interest overrides for 50 stocks (vintage: FY2024-25 (April 2024 – March 2025) annual reports and Q3 FY25 consolidated filings)
+2026-04-26 03:58:54,793  INFO  ============================================================
+2026-04-26 03:58:54,793  INFO  Nifty 50 Dashboard — Data Fetch Starting
+2026-04-26 03:58:54,793  INFO  ============================================================
+2026-04-26 03:58:54,793  INFO  Today is a weekend. Skipping update.
+2026-04-26 03:58:54,793  INFO  Market closed today. Writing holiday status.
